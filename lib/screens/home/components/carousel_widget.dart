@@ -31,9 +31,10 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     } catch (e) {
       // Handle error, e.g., show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Falha ao deletar plantao. Tente novamente: $e')),
+        const SnackBar(
+            content: Text('Falha ao deletar plantao. Tente novamente')),
       );
+      return;
     }
     setState(() {
       widget.events.remove(shift);

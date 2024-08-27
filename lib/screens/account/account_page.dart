@@ -29,11 +29,12 @@ class _AccountPageState extends State<AccountPage> {
   List<String> estados = [];
   List<String> cidades = [];
 
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    loadInitialStateData();
-    fetchAccountInfo();
+    loadInitialStateData().then((_) => fetchAccountInfo());
   }
 
   Future<void> loadInitialStateData() async {
@@ -56,13 +57,20 @@ class _AccountPageState extends State<AccountPage> {
           stateController.value = data['state'];
           cityController.value = data['city'];
           cidades = stateCityProvider.getCitiesByState(stateController.value!);
+          isLoading = false; // Data loaded successfully
         });
       } else {
         _showErrorDialog('Failed to load account information.');
+        setState(() {
+          isLoading = false; // Error occurred, stop loading state
+        });
       }
     } catch (e) {
       print('Error fetching account info: $e');
       _showErrorDialog('An error occurred while fetching account information.');
+      setState(() {
+        isLoading = false; // Error occurred, stop loading state
+      });
     }
   }
 
@@ -105,6 +113,17 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Minha Conta'),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(), // Loading indicator
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Minha Conta'),
