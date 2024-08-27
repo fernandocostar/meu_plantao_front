@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:meu_plantao_front/screens/home/components/create_shift_home_button.dart';
-
+import 'package:meu_plantao_front/screens/account/account_page.dart';
 import 'package:meu_plantao_front/screens/home/components/calendar_widget.dart';
 import 'package:meu_plantao_front/screens/home/components/carousel_widget.dart';
 import 'package:meu_plantao_front/screens/home/components/calendar_metrics_widget.dart';
@@ -26,6 +26,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
@@ -93,6 +94,12 @@ class _HomePageState extends State<HomePage> {
     _fetchShifts(); // Refresh the data when a shift is created
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = Colors.teal;
@@ -107,10 +114,92 @@ class _HomePageState extends State<HomePage> {
       return startA.compareTo(startB);
     });
 
+    Widget _buildContent() {
+      switch (_selectedIndex) {
+        case 1:
+          return Column(
+            children: [
+              CalendarWidget(
+                focusedDay: _focusedDay,
+                selectedDay: _selectedDay,
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onPageChanged: (focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                  });
+                },
+                eventLoader: _getEventsForDay,
+              ),
+              if (selectedDayEvents.isNotEmpty) ...[
+                SizedBox(height: 15),
+                CarouselWidget(
+                  events: selectedDayEvents,
+                  primaryColor: primaryColor,
+                  onShiftUpdated: _handleShiftUpdated, // Pass the callback
+                ),
+              ],
+              CalendarMetricsWidget(
+                  events: _events,
+                  displayedMonth: _focusedDay.month,
+                  displayedYear: _focusedDay.year),
+              SizedBox(height: 15),
+              if (_selectedDay != null)
+                CreateShiftHomeButton(
+                  selectedDate: _selectedDay!,
+                  onShiftCreated: _handleShiftUpdated, // Pass the callback
+                )
+              else
+                Text('Nenhuma data selecionada'),
+            ],
+          );
+        case 0:
+          return Center(child: Text('Calendar Page'));
+        case 2:
+          return Center(child: Text('Profile Page'));
+        case 3:
+          return Center(child: Text('Reports Page'));
+        default:
+          return Center(child: Text('Unknown Page'));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text('Ola, ${widget.name}!',
+        leading: IconButton(
+          icon: Icon(
+            Icons.account_circle,
+            color: Colors.white,
+            size: 35,
+          ),
+          color: Colors.white,
+          onPressed: () async {
+            // Fetch token from secure storage
+            String? token = await _storage.read(key: 'token');
+
+            if (token != null) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AccountPage(),
+                ),
+              );
+              // Optionally, refresh data here if needed
+              // e.g., await _fetchShifts();
+            } else {
+              // Handle the case where the token is not available
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Token não encontrado.')),
+              );
+            }
+          },
+        ),
+        title: Text('Olá, ${widget.name}!',
             style: TextStyle(fontSize: 24, color: Colors.white)),
         actions: [
           IconButton(
@@ -127,53 +216,31 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  CalendarWidget(
-                    focusedDay: _focusedDay,
-                    selectedDay: _selectedDay,
-                    onDaySelected: (selectedDay, focusedDay) {
-                      setState(() {
-                        _selectedDay = selectedDay;
-                        _focusedDay = focusedDay;
-                      });
-                    },
-                    onPageChanged: (focusedDay) {
-                      setState(() {
-                        _focusedDay = focusedDay;
-                      });
-                    },
-                    eventLoader: _getEventsForDay,
-                  ),
-                  if (selectedDayEvents.isNotEmpty) ...[
-                    SizedBox(height: 15),
-                    CarouselWidget(
-                      events: selectedDayEvents,
-                      primaryColor: primaryColor,
-                      onShiftUpdated: _handleShiftUpdated, // Pass the callback
-                    ),
-                  ],
-                  //counter widget
-                  CalendarMetricsWidget(
-                      events: _events,
-                      displayedMonth: _focusedDay.month,
-                      displayedYear: _focusedDay.year),
-                  SizedBox(height: 15),
-                  if (_selectedDay != null)
-                    CreateShiftHomeButton(
-                      selectedDate: _selectedDay!,
-                      onShiftCreated: _handleShiftUpdated, // Pass the callback
-                    )
-                  else
-                    Text('Nenhuma data selecionada'),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: _buildContent(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Calendário',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Conta',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Reports',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
       ),
     );
   }
