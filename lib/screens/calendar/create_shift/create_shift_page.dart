@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meu_plantao_front/screens/home/components/shift_submit_button.dart';
+import 'package:meu_plantao_front/screens/calendar/components/shift_submit_button.dart';
 import 'package:meu_plantao_front/service/shift_service.dart';
 import '../../common/components/date_time_picker.dart';
 

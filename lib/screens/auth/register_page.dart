@@ -13,7 +13,7 @@ import 'package:meu_plantao_front/util/constants.dart';
 import 'package:meu_plantao_front/screens/common/state_city_provider.dart'
     as state_city_provider;
 
-import '../home/home_page.dart';
+import '../calendar/calendar_page.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -238,7 +238,7 @@ class _RegisterPageState extends State<RegisterPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(
+        builder: (context) => CalendarPage(
           name: responseData['name'],
           email: responseData['email'],
           token: responseData['token'],

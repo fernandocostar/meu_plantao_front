@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:meu_plantao_front/screens/home/create_shift/create_shift_page.dart';
+import 'package:meu_plantao_front/screens/calendar/create_shift/create_shift_page.dart';
 
-class CreateShiftHomeButton extends StatefulWidget {
+class CreateShiftCalendarButton extends StatefulWidget {
   final DateTime selectedDate;
   final VoidCallback onShiftCreated; // Callback function
 
-  const CreateShiftHomeButton({
+  const CreateShiftCalendarButton({
     required this.selectedDate,
     required this.onShiftCreated,
   });
 
   @override
-  _CreateShiftHomeButtonState createState() => _CreateShiftHomeButtonState();
+  _CreateShiftCalendarButtonState createState() =>
+      _CreateShiftCalendarButtonState();
 }
 
-class _CreateShiftHomeButtonState extends State<CreateShiftHomeButton> {
+class _CreateShiftCalendarButtonState extends State<CreateShiftCalendarButton> {
   bool _isPressed = false;
 
   @override

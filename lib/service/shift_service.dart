@@ -84,4 +84,24 @@ class ShiftService {
       throw Exception('Failed to delete shift: ${response.body}');
     }
   }
+
+  Future<List<dynamic>> fetchAllShifts() async {
+    final String? authToken = await _secureStorage.read(key: 'token');
+    if (authToken == null) {
+      throw Exception('Auth token is not available');
+    }
+
+    final response = await http.get(
+      Uri.parse('$apiUrl/getAll'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch shifts: ${response.body}');
+    }
+  }
 }

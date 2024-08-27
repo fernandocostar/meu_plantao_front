@@ -9,7 +9,7 @@ import 'package:meu_plantao_front/screens/auth/components/auth_text_field.dart';
 import 'package:meu_plantao_front/screens/auth/AuthValidators.dart';
 import 'package:meu_plantao_front/util/constants.dart';
 
-import '../home/home_page.dart';
+import '../calendar/calendar_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -138,7 +138,7 @@ class LoginPage extends StatelessWidget {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(
+        builder: (context) => CalendarPage(
           name: responseData['name'],
           email: responseData['email'],
           token: responseData['token'],

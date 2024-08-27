@@ -1,37 +1,22 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:meu_plantao_front/screens/home/components/create_shift_home_button.dart';
-import 'package:meu_plantao_front/screens/account/account_page.dart';
-import 'package:meu_plantao_front/screens/home/components/calendar_widget.dart';
-import 'package:meu_plantao_front/screens/home/components/carousel_widget.dart';
-import 'package:meu_plantao_front/screens/home/components/calendar_metrics_widget.dart';
+import 'package:meu_plantao_front/service/shift_service.dart'; // Import your ShiftService
+import 'package:meu_plantao_front/screens/home/components/shift_home_card.dart'; // Import your custom ShiftCard widget
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
-  final String name;
-  final String email;
-  final String token;
-  final VoidCallback onQuit;
-
-  HomePage({
-    required this.name,
-    required this.email,
-    required this.token,
-    required this.onQuit,
-  });
-
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  Map<DateTime, List<dynamic>> _events = {};
-
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  final ShiftService _shiftService = ShiftService();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  List<dynamic> _upcomingShifts = [];
+  int _totalShifts = 0;
+  int _totalHours = 0;
+  double _totalEarnings = 0.0;
 
   @override
   void initState() {
@@ -39,208 +24,131 @@ class _HomePageState extends State<HomePage> {
     _fetchShifts();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _fetchShifts(); // Refresh data when dependencies change
-  }
-
   Future<void> _fetchShifts() async {
     try {
-      String? storedToken = await _storage.read(key: 'token');
+      List<dynamic> shifts = await _shiftService.fetchAllShifts();
 
-      if (storedToken != null) {
-        final response = await http.get(
-          Uri.parse('http://10.0.2.2:8080/shifts/getAll'),
-          headers: {
-            'Authorization': 'Bearer $storedToken',
-          },
-        );
+      if (shifts.isNotEmpty) {
+        // Calculate metrics
+        _totalShifts = shifts.length;
+        _totalHours = shifts.fold(0, (sum, shift) {
+          DateTime start = DateTime.parse(shift['startTime']);
+          DateTime end = DateTime.parse(shift['endTime']);
+          return sum + end.difference(start).inHours;
+        });
+        _totalEarnings = shifts.fold(0.0, (sum, shift) => sum + shift['value']);
 
-        if (response.statusCode == 200) {
-          List<dynamic> shifts = jsonDecode(response.body);
-          Map<DateTime, List<dynamic>> events = {};
-
-          for (var shift in shifts) {
-            DateTime startDate = DateTime.parse(shift['startTime']);
-            DateTime normalizedDate = DateTime(
-              startDate.year,
-              startDate.month,
-              startDate.day,
-            );
-
-            if (events[normalizedDate] == null) {
-              events[normalizedDate] = [];
-            }
-            events[normalizedDate]!.add(shift);
-          }
-
-          setState(() {
-            _events = events;
-          });
-        }
+        // Add duration calculation
+        setState(() {
+          _upcomingShifts = shifts.map((shift) {
+            DateTime start = DateTime.parse(shift['startTime']);
+            DateTime end = DateTime.parse(shift['endTime']);
+            final duration = end.difference(start).inHours.toDouble();
+            return {
+              ...shift,
+              'duration': duration,
+            };
+          }).toList();
+        });
+      } else {
+        // Handle errors
+        print('Failed to load shifts');
       }
     } catch (e) {
       print('Error fetching shifts: $e');
     }
   }
 
-  List<dynamic> _getEventsForDay(DateTime day) {
-    DateTime normalizedDay = DateTime(day.year, day.month, day.day);
-    return _events[normalizedDay] ?? [];
-  }
-
-  void _handleShiftUpdated() {
-    _fetchShifts(); // Refresh the data when a shift is created
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Colors.teal;
-
-    List<dynamic> selectedDayEvents =
-        _selectedDay != null ? _getEventsForDay(_selectedDay!) : [];
-
-    // Sort shifts by start time
-    selectedDayEvents.sort((a, b) {
-      DateTime startA = DateTime.parse(a['startTime']);
-      DateTime startB = DateTime.parse(b['startTime']);
-      return startA.compareTo(startB);
-    });
-
-    Widget _buildContent() {
-      switch (_selectedIndex) {
-        case 1:
-          return Column(
-            children: [
-              CalendarWidget(
-                focusedDay: _focusedDay,
-                selectedDay: _selectedDay,
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                  });
-                },
-                eventLoader: _getEventsForDay,
-              ),
-              if (selectedDayEvents.isNotEmpty) ...[
-                SizedBox(height: 15),
-                CarouselWidget(
-                  events: selectedDayEvents,
-                  primaryColor: primaryColor,
-                  onShiftUpdated: _handleShiftUpdated, // Pass the callback
-                ),
-              ],
-              CalendarMetricsWidget(
-                  events: _events,
-                  displayedMonth: _focusedDay.month,
-                  displayedYear: _focusedDay.year),
-              SizedBox(height: 15),
-              if (_selectedDay != null)
-                CreateShiftHomeButton(
-                  selectedDate: _selectedDay!,
-                  onShiftCreated: _handleShiftUpdated, // Pass the callback
-                )
-              else
-                Text('Nenhuma data selecionada'),
-            ],
-          );
-        case 0:
-          return Center(child: Text('Calendar Page'));
-        case 2:
-          return Center(child: Text('Profile Page'));
-        case 3:
-          return Center(child: Text('Reports Page'));
-        default:
-          return Center(child: Text('Unknown Page'));
-      }
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        leading: IconButton(
-          icon: Icon(
-            Icons.account_circle,
-            color: Colors.white,
-            size: 35,
-          ),
-          color: Colors.white,
-          onPressed: () async {
-            // Fetch token from secure storage
-            String? token = await _storage.read(key: 'token');
-
-            if (token != null) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AccountPage(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Upcoming Shifts Section
+              Text(
+                'Próximos Plantões',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal[800],
                 ),
-              );
-              // Optionally, refresh data here if needed
-              // e.g., await _fetchShifts();
-            } else {
-              // Handle the case where the token is not available
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Token não encontrado.')),
-              );
-            }
-          },
+              ),
+              SizedBox(height: 10),
+              _buildUpcomingShiftsSection(),
+
+              // Dashboard Metrics Section
+              SizedBox(height: 20),
+              Text(
+                'Visão Geral',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal[800],
+                ),
+              ),
+              SizedBox(height: 10),
+              _buildDashboardOverview(),
+            ],
+          ),
         ),
-        title: Text('Olá, ${widget.name}!',
-            style: TextStyle(fontSize: 24, color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
-            onPressed: () async {
-              await _fetchShifts();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: widget.onQuit,
-          ),
-        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _buildContent(),
+    );
+  }
+
+  Widget _buildUpcomingShiftsSection() {
+    return Column(
+      children: _upcomingShifts.map((shift) {
+        return ShiftCard(
+          startTime: shift['startTime'],
+          duration: shift['duration'], // Use the calculated duration
+          location: shift['location'],
+          value: shift['value'],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDashboardOverview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildMetricCard('Total de Plantões', _totalShifts.toString()),
+        _buildMetricCard('Horas Trabalhadas', '$_totalHours horas'),
+        _buildMetricCard(
+            'Remuneração Total', 'R\$${_totalEarnings.toStringAsFixed(2)}'),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard(String title, String value) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Início',
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w600,
+            color: Colors.teal[900],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendário',
+        ),
+        trailing: Text(
+          value,
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal[700],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Conta',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Reports',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }
