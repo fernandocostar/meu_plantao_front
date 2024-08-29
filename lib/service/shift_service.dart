@@ -104,4 +104,71 @@ class ShiftService {
       throw Exception('Failed to fetch shifts: ${response.body}');
     }
   }
+
+  Future<List<dynamic>> fetchUpcomingShifts() async {
+    final String? authToken = await _secureStorage.read(key: 'token');
+    if (authToken == null) {
+      throw Exception('Auth token is not available');
+    }
+
+    final response = await http.get(
+      Uri.parse('$apiUrl/getAll'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> shifts = jsonDecode(response.body);
+
+      // Filter shifts to include only those after or equal to the current date
+      DateTime now = DateTime.now();
+      shifts = shifts.where((shift) {
+        DateTime start = DateTime.parse(shift['startTime']);
+        return start.isAfter(now) || start.isAtSameMomentAs(now);
+      }).toList();
+
+      // Sort by start time and limit to 4 closest shifts
+      shifts.sort((a, b) => DateTime.parse(a['startTime'])
+          .compareTo(DateTime.parse(b['startTime'])));
+      return shifts.take(4).toList();
+    } else {
+      throw Exception('Failed to fetch shifts: ${response.body}');
+    }
+  }
+
+  Future<List<dynamic>> fetchCurrentMonthShifts() async {
+    final String? authToken = await _secureStorage.read(key: 'token');
+    if (authToken == null) {
+      throw Exception('Auth token is not available');
+    }
+
+    final response = await http.get(
+      Uri.parse('$apiUrl/getAll'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> shifts = jsonDecode(response.body);
+
+      // Filter shifts to include only those within the current month
+      DateTime now = DateTime.now();
+      int currentMonth = now.month;
+      int currentYear = now.year;
+
+      shifts = shifts.where((shift) {
+        DateTime start = DateTime.parse(shift['startTime']);
+        return start.month == currentMonth && start.year == currentYear;
+      }).toList();
+
+      // Sort by start time
+      shifts.sort((a, b) => DateTime.parse(a['startTime'])
+          .compareTo(DateTime.parse(b['startTime'])));
+      return shifts;
+    } else {
+      throw Exception('Failed to fetch shifts: ${response.body}');
+    }
+  }
 }

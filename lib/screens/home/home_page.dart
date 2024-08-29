@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:meu_plantao_front/service/shift_service.dart'; // Import your ShiftService
-import 'package:meu_plantao_front/screens/home/components/shift_home_card.dart'; // Import your custom ShiftCard widget
-import 'package:http/http.dart' as http;
+import 'package:meu_plantao_front/service/shift_service.dart';
+import 'package:meu_plantao_front/screens/home/components/shift_home_card.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,6 +12,7 @@ class _HomePageState extends State<HomePage> {
   final ShiftService _shiftService = ShiftService();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   List<dynamic> _upcomingShifts = [];
+  List<dynamic> _currentMonthShifts = [];
   int _totalShifts = 0;
   int _totalHours = 0;
   double _totalEarnings = 0.0;
@@ -21,24 +20,15 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _fetchShifts();
+    _fetchUpcomingShifts();
+    _fetchCurrentMonthShifts(); // Fetch current month shifts
   }
 
-  Future<void> _fetchShifts() async {
+  Future<void> _fetchUpcomingShifts() async {
     try {
-      List<dynamic> shifts = await _shiftService.fetchAllShifts();
+      List<dynamic> shifts = await _shiftService.fetchUpcomingShifts();
 
       if (shifts.isNotEmpty) {
-        // Calculate metrics
-        _totalShifts = shifts.length;
-        _totalHours = shifts.fold(0, (sum, shift) {
-          DateTime start = DateTime.parse(shift['startTime']);
-          DateTime end = DateTime.parse(shift['endTime']);
-          return sum + end.difference(start).inHours;
-        });
-        _totalEarnings = shifts.fold(0.0, (sum, shift) => sum + shift['value']);
-
-        // Add duration calculation
         setState(() {
           _upcomingShifts = shifts.map((shift) {
             DateTime start = DateTime.parse(shift['startTime']);
@@ -51,11 +41,41 @@ class _HomePageState extends State<HomePage> {
           }).toList();
         });
       } else {
-        // Handle errors
         print('Failed to load shifts');
       }
     } catch (e) {
       print('Error fetching shifts: $e');
+    }
+  }
+
+  Future<void> _fetchCurrentMonthShifts() async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startOfMonth = DateTime(now.year, now.month, 1);
+      DateTime endOfMonth =
+          DateTime(now.year, now.month + 1, 0); // Last day of the current month
+
+      List<dynamic> shifts = await _shiftService.fetchAllShifts();
+
+      _currentMonthShifts = shifts.where((shift) {
+        DateTime start = DateTime.parse(shift['startTime']);
+        return start.isAfter(startOfMonth) && start.isBefore(endOfMonth);
+      }).toList();
+
+      // Calculate metrics for current month shifts
+      setState(() {
+        _currentMonthShifts = _currentMonthShifts;
+        _totalShifts = _currentMonthShifts.length;
+        _totalHours = _currentMonthShifts.fold(0, (sum, shift) {
+          DateTime start = DateTime.parse(shift['startTime']);
+          DateTime end = DateTime.parse(shift['endTime']);
+          return sum + end.difference(start).inHours;
+        });
+        _totalEarnings =
+            _currentMonthShifts.fold(0.0, (sum, shift) => sum + shift['value']);
+      });
+    } catch (e) {
+      print('Error fetching current month shifts: $e');
     }
   }
 
@@ -83,7 +103,7 @@ class _HomePageState extends State<HomePage> {
               // Dashboard Metrics Section
               SizedBox(height: 20),
               Text(
-                'Visão Geral',
+                'Visão Mensal',
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -116,8 +136,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildMetricCard('Total de Plantões', _totalShifts.toString()),
-        _buildMetricCard('Horas Trabalhadas', '$_totalHours horas'),
+        _buildMetricCard('Número de Plantões', _totalShifts.toString()),
+        _buildMetricCard('Total de Horas', '$_totalHours horas'),
         _buildMetricCard(
             'Remuneração Total', 'R\$${_totalEarnings.toStringAsFixed(2)}'),
       ],

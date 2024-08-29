@@ -10,7 +10,7 @@ import 'package:meu_plantao_front/screens/calendar/components/calendar_metrics_w
 import 'package:meu_plantao_front/screens/home/home_page.dart';
 
 class CalendarPage extends StatefulWidget {
-  final String name;
+  String name;
   final String email;
   final String token;
   final VoidCallback onQuit;
@@ -32,13 +32,16 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
 
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
+  String name = '';
 
   @override
   void initState() {
     super.initState();
     _fetchShifts();
+    name = widget.name;
   }
+
+  final FlutterSecureStorage _storage = FlutterSecureStorage();
 
   @override
   void didChangeDependencies() {
@@ -161,9 +164,7 @@ class _CalendarPageState extends State<CalendarPage> {
         case 0:
           return HomePage();
         case 2:
-          return Center(child: Text('Profile Page'));
-        case 3:
-          return Center(child: Text('Reports Page'));
+          return Center(child: Text('Relatórios em breve!'));
         default:
           return Center(child: Text('Unknown Page'));
       }
@@ -180,24 +181,14 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           color: Colors.white,
           onPressed: () async {
-            // Fetch token from secure storage
-            String? token = await _storage.read(key: 'token');
-
-            if (token != null) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AccountPage(),
-                ),
-              );
-              // Optionally, refresh data here if needed
-              // e.g., await _fetchShifts();
-            } else {
-              // Handle the case where the token is not available
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Token não encontrado.')),
-              );
-            }
+            var result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AccountPage(),
+              ),
+            );
+            print(result.toString());
+            await _fetchShifts();
           },
         ),
         title: Text('Olá, ${widget.name}!',
@@ -228,10 +219,6 @@ class _CalendarPageState extends State<CalendarPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Calendário',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Conta',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),

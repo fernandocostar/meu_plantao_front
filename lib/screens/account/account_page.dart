@@ -86,9 +86,6 @@ class _AccountPageState extends State<AccountPage> {
 
       // Show the auto-close dialog with success message
       AutoCloseDialog.show(context, 'Informações atualizadas com sucesso');
-
-      // Optionally, navigate back or update UI if needed
-      // Navigator.pop(context); // Uncomment if you want to go back after updating
     } catch (e) {
       print('Error updating account info: $e');
       _showErrorDialog('An error occurred while updating account information.');
