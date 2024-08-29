@@ -152,7 +152,7 @@ class _HomePageState extends State<HomePage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
         title: Text(
           title,
           style: TextStyle(

@@ -124,7 +124,7 @@ class _CreateShiftPageState extends State<CreateShiftPage> {
                             EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
                       child: Text(
-                        "Página Inicial",
+                        "Retornar",
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     ),

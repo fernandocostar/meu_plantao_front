@@ -121,8 +121,10 @@ class ShiftService {
     if (response.statusCode == 200) {
       List<dynamic> shifts = jsonDecode(response.body);
 
-      // Filter shifts to include only those after or equal to the current date
+      // Get the current date and time
       DateTime now = DateTime.now();
+
+      // Filter shifts to include only those starting from now or later
       shifts = shifts.where((shift) {
         DateTime start = DateTime.parse(shift['startTime']);
         return start.isAfter(now) || start.isAtSameMomentAs(now);
@@ -131,7 +133,7 @@ class ShiftService {
       // Sort by start time and limit to 4 closest shifts
       shifts.sort((a, b) => DateTime.parse(a['startTime'])
           .compareTo(DateTime.parse(b['startTime'])));
-      return shifts.take(4).toList();
+      return shifts.take(3).toList();
     } else {
       throw Exception('Failed to fetch shifts: ${response.body}');
     }
