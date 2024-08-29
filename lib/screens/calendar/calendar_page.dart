@@ -104,6 +104,13 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+  void _updateName(String newName) {
+    print('Updating name to $newName');
+    setState(() {
+      name = newName;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final primaryColor = Colors.teal;
@@ -184,14 +191,14 @@ class _CalendarPageState extends State<CalendarPage> {
             var result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AccountPage(),
+                builder: (context) => AccountPage(onNameUpdated: _updateName),
               ),
             );
             print(result.toString());
             await _fetchShifts();
           },
         ),
-        title: Text('Olá, ${widget.name}!',
+        title: Text('Olá, ${name}!',
             style: TextStyle(fontSize: 24, color: Colors.white)),
         actions: [
           IconButton(

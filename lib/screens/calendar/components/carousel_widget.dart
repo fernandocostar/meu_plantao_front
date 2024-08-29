@@ -178,7 +178,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                                 .end, // Aligns both icons to the right
                             children: [
                               Text(
-                                "Detalhes do plantao:",
+                                "Detalhes do plantão:",
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,

@@ -6,9 +6,13 @@ import 'package:meu_plantao_front/screens/auth/enums/ProfessionalTypeEnum.dart';
 import 'package:meu_plantao_front/screens/common/state_city_provider.dart'
     as state_city_provider;
 import 'package:meu_plantao_front/service/account_service.dart';
-import 'package:meu_plantao_front/screens/common/components/auto_close_dialog.dart'; // Import your AutoCloseDialog
+import 'package:meu_plantao_front/screens/common/components/auto_close_dialog.dart';
 
 class AccountPage extends StatefulWidget {
+  final Function(String) onNameUpdated;
+
+  AccountPage({required this.onNameUpdated});
+
   @override
   _AccountPageState createState() => _AccountPageState();
 }
@@ -19,10 +23,9 @@ class _AccountPageState extends State<AccountPage> {
 
   final nameController = TextEditingController();
   final professionalRegisterController = TextEditingController();
-  ValueNotifier<String?> professionalTypeController =
-      ValueNotifier<String?>(null);
-  ValueNotifier<String?> stateController = ValueNotifier<String?>(null);
-  ValueNotifier<String?> cityController = ValueNotifier<String?>(null);
+  final professionalTypeController = ValueNotifier<String?>(null);
+  final stateController = ValueNotifier<String?>(null);
+  final cityController = ValueNotifier<String?>(null);
 
   List<String> professionalTypes =
       ProfessionalType.values.map((type) => type.label).toList();
@@ -34,47 +37,52 @@ class _AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    loadInitialStateData().then((_) => fetchAccountInfo());
+    _initializeData();
   }
 
-  Future<void> loadInitialStateData() async {
+  Future<void> _initializeData() async {
+    await _loadInitialStateData();
+    await _fetchAccountInfo();
+  }
+
+  Future<void> _loadInitialStateData() async {
     await stateCityProvider.loadStateAndCityData();
     setState(() {
       estados = stateCityProvider.getStateNames();
     });
   }
 
-  Future<void> fetchAccountInfo() async {
+  Future<void> _fetchAccountInfo() async {
     try {
       final data = await accountService.fetchAccountInfo();
-
       if (data != null) {
-        setState(() {
-          nameController.text = data['name'];
-          professionalRegisterController.text = data['professionalRegister'];
-          professionalTypeController.value =
-              ProfessionalType.values[data['professionalType']].label;
-          stateController.value = data['state'];
-          cityController.value = data['city'];
-          cidades = stateCityProvider.getCitiesByState(stateController.value!);
-          isLoading = false; // Data loaded successfully
-        });
+        _updateUIWithAccountInfo(data);
       } else {
         _showErrorDialog('Failed to load account information.');
-        setState(() {
-          isLoading = false; // Error occurred, stop loading state
-        });
       }
     } catch (e) {
       print('Error fetching account info: $e');
       _showErrorDialog('An error occurred while fetching account information.');
+    } finally {
       setState(() {
-        isLoading = false; // Error occurred, stop loading state
+        isLoading = false;
       });
     }
   }
 
-  Future<void> _handleUpdate(BuildContext context) async {
+  void _updateUIWithAccountInfo(Map<String, dynamic> data) {
+    setState(() {
+      nameController.text = data['name'];
+      professionalRegisterController.text = data['professionalRegister'];
+      professionalTypeController.value =
+          ProfessionalType.values[data['professionalType']].label;
+      stateController.value = data['state'];
+      cityController.value = data['city'];
+      cidades = stateCityProvider.getCitiesByState(stateController.value!);
+    });
+  }
+
+  Future<void> _handleUpdate() async {
     try {
       await accountService.updateAccountInfo(
         name: nameController.text,
@@ -83,9 +91,8 @@ class _AccountPageState extends State<AccountPage> {
         state: stateController.value!,
         city: cityController.value!,
       );
-
-      // Show the auto-close dialog with success message
       AutoCloseDialog.show(context, 'Informações atualizadas com sucesso');
+      widget.onNameUpdated(nameController.text);
     } catch (e) {
       print('Error updating account info: $e');
       _showErrorDialog('An error occurred while updating account information.');
@@ -109,96 +116,114 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   @override
+  void dispose() {
+    nameController.dispose();
+    professionalRegisterController.dispose();
+    professionalTypeController.dispose();
+    stateController.dispose();
+    cityController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Minha Conta'),
-        ),
-        body: Center(
-          child: CircularProgressIndicator(), // Loading indicator
-        ),
+        appBar: AppBar(title: const Text('Minha Conta')),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Minha Conta'),
-      ),
+      appBar: AppBar(title: const Text('Minha Conta')),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                AuthTextField(
-                  controller: nameController,
-                  hintText: 'Nome completo',
-                  obscureText: false,
-                ),
-                const SizedBox(height: 15),
-                Dropdown(
-                  items: professionalTypes,
-                  hintText: 'Selecione sua profissão',
-                  controller: professionalTypeController,
-                  onChanged: (newValue) {
-                    setState(() {
-                      professionalTypeController.value = newValue;
-                    });
-                  },
-                ),
-                const SizedBox(height: 15),
-                AuthTextField(
-                  controller: professionalRegisterController,
-                  hintText: 'Registro profissional',
-                  obscureText: false,
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    Flexible(
-                      flex: 2,
-                      child: Dropdown(
-                        items: estados,
-                        hintText: 'Estado',
-                        controller: stateController,
-                        onChanged: (newValue) {
-                          setState(() {
-                            stateController.value = newValue;
-                            cidades = stateCityProvider
-                                .getCitiesByState(stateController.value!);
-                            cityController.value = null;
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Flexible(
-                      flex: 3,
-                      child: Dropdown(
-                        items: cidades,
-                        hintText: 'Cidade',
-                        controller: cityController,
-                        onChanged: (newValue) {
-                          setState(() {
-                            cityController.value = newValue;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                AuthSubmitButton(
-                  onTap: () => _handleUpdate(context),
-                  text: 'Atualizar Informações',
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              _buildNameField(),
+              const SizedBox(height: 15),
+              _buildProfessionalTypeDropdown(),
+              const SizedBox(height: 15),
+              _buildProfessionalRegisterField(),
+              const SizedBox(height: 15),
+              _buildLocationFields(),
+              const SizedBox(height: 20),
+              AuthSubmitButton(
+                onTap: _handleUpdate,
+                text: 'Atualizar Informações',
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNameField() {
+    return AuthTextField(
+      controller: nameController,
+      hintText: 'Nome completo',
+      obscureText: false,
+    );
+  }
+
+  Widget _buildProfessionalTypeDropdown() {
+    return Dropdown(
+      items: professionalTypes,
+      hintText: 'Selecione sua profissão',
+      controller: professionalTypeController,
+      onChanged: (newValue) {
+        setState(() {
+          professionalTypeController.value = newValue;
+        });
+      },
+    );
+  }
+
+  Widget _buildProfessionalRegisterField() {
+    return AuthTextField(
+      controller: professionalRegisterController,
+      hintText: 'Registro profissional',
+      obscureText: false,
+    );
+  }
+
+  Widget _buildLocationFields() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Dropdown(
+            items: estados,
+            hintText: 'Estado',
+            controller: stateController,
+            onChanged: (newValue) {
+              setState(() {
+                stateController.value = newValue;
+                cidades =
+                    stateCityProvider.getCitiesByState(stateController.value!);
+                cityController.value = null;
+              });
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 3,
+          child: Dropdown(
+            items: cidades,
+            hintText: 'Cidade',
+            controller: cityController,
+            onChanged: (newValue) {
+              setState(() {
+                cityController.value = newValue;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 }
