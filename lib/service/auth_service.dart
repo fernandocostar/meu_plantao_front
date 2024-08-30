@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  final String apiUrl = 'http://10.0.2.2:8080/auth';
+  final String apiUrl = 'http://35.166.116.189:8080/auth';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   final void Function(String) showErrorDialog;

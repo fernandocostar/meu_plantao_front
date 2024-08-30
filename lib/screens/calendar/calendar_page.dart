@@ -55,7 +55,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       if (storedToken != null) {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8080/shifts/getAll'),
+          Uri.parse('http://35.166.116.189:8080/shifts/getAll'),
           headers: {
             'Authorization': 'Bearer $storedToken',
           },
@@ -171,7 +171,12 @@ class _CalendarPageState extends State<CalendarPage> {
         case 0:
           return HomePage();
         case 2:
-          return Center(child: Text('Relatórios em breve!'));
+          return Center(
+              child: Text('Relatórios em breve!',
+                  style: TextStyle(
+                      fontSize: 24,
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold)));
         default:
           return Center(child: Text('Unknown Page'));
       }
@@ -229,7 +234,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
-            label: 'Reports',
+            label: 'Relatórios',
           ),
         ],
         currentIndex: _selectedIndex,

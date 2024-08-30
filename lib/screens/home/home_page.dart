@@ -16,12 +16,27 @@ class _HomePageState extends State<HomePage> {
   int _totalShifts = 0;
   int _totalHours = 0;
   double _totalEarnings = 0.0;
+  bool _isLoading = true; // Add loading state
 
   @override
   void initState() {
     super.initState();
-    _fetchUpcomingShifts();
-    _fetchCurrentMonthShifts(); // Fetch current month shifts
+    _initializeData(); // Load data in an asynchronous manner
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      await Future.wait([
+        _fetchUpcomingShifts(),
+        _fetchCurrentMonthShifts(),
+      ]);
+    } catch (e) {
+      print('Error initializing data: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // Data loading is complete
+      });
+    }
   }
 
   Future<void> _fetchUpcomingShifts() async {
@@ -81,6 +96,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child:
+              CircularProgressIndicator(), // Show loading indicator while data is being fetched
+        ),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
