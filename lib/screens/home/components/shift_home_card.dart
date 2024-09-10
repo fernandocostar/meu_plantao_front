@@ -37,12 +37,12 @@ class ShiftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5.0),
-      elevation: 6, // Slightly increased elevation for a more pronounced shadow
+      elevation: 4, // Slightly increased elevation for a more pronounced shadow
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // Rounded corners
+        borderRadius: BorderRadius.circular(5), // Rounded corners
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(10.0), // Reduced padding
+        contentPadding: const EdgeInsets.all(5.0), // Reduced padding
         leading: Icon(
           Icons.calendar_today, // Icon to represent the shift
           color: Colors.teal[700],
@@ -53,7 +53,7 @@ class ShiftCard extends StatelessWidget {
             Text(
               _formatDate(startTime), // Formatted date
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 14.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.teal[800],
               ),
@@ -61,7 +61,7 @@ class ShiftCard extends StatelessWidget {
             Text(
               _formatTime(startTime), // Formatted time
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 14.0,
                 color: Colors.teal[700],
               ),
             ),
@@ -70,7 +70,7 @@ class ShiftCard extends StatelessWidget {
             Text(
               location, // Location text
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 14.0,
                 color: Colors.grey[700],
               ),
             ),
@@ -82,7 +82,7 @@ class ShiftCard extends StatelessWidget {
             Text(
               '${duration.toStringAsFixed(1)} hrs',
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 14.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.teal[600],
               ),
@@ -90,7 +90,7 @@ class ShiftCard extends StatelessWidget {
             Text(
               'R\$${value.toStringAsFixed(2)}',
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 14.0,
                 fontWeight: FontWeight.bold,
                 color: Colors.teal[600],
               ),

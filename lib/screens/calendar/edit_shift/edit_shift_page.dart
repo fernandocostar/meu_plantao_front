@@ -96,90 +96,92 @@ class _EditShiftPageState extends State<EditShiftPage> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Start Date and Time
-            CustomDateTimePicker(
-              labelText: 'Data/Hora de início',
-              initialDateTime: DateTime(
-                startDate!.year,
-                startDate!.month,
-                startDate!.day,
-                startTime!.hour,
-                startTime!.minute,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Start Date and Time
+              CustomDateTimePicker(
+                labelText: 'Data/Hora de início',
+                initialDateTime: DateTime(
+                  startDate!.year,
+                  startDate!.month,
+                  startDate!.day,
+                  startTime!.hour,
+                  startTime!.minute,
+                ),
+                onChanged: (dateTime) {
+                  setState(() {
+                    startDate = dateTime;
+                    startTime = dateTime != null
+                        ? TimeOfDay.fromDateTime(dateTime)
+                        : null;
+                  });
+                },
               ),
-              onChanged: (dateTime) {
-                setState(() {
-                  startDate = dateTime;
-                  startTime = dateTime != null
-                      ? TimeOfDay.fromDateTime(dateTime)
-                      : null;
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-
-            // End Date and Time
-            CustomDateTimePicker(
-              labelText: 'Data/Hora de fim',
-              initialDateTime: DateTime(
-                endDate!.year,
-                endDate!.month,
-                endDate!.day,
-                endTime!.hour,
-                endTime!.minute,
+              SizedBox(height: 16.0),
+        
+              // End Date and Time
+              CustomDateTimePicker(
+                labelText: 'Data/Hora de fim',
+                initialDateTime: DateTime(
+                  endDate!.year,
+                  endDate!.month,
+                  endDate!.day,
+                  endTime!.hour,
+                  endTime!.minute,
+                ),
+                onChanged: (dateTime) {
+                  setState(() {
+                    endDate = dateTime;
+                    endTime = dateTime != null
+                        ? TimeOfDay.fromDateTime(dateTime)
+                        : null;
+                  });
+                },
               ),
-              onChanged: (dateTime) {
-                setState(() {
-                  endDate = dateTime;
-                  endTime = dateTime != null
-                      ? TimeOfDay.fromDateTime(dateTime)
-                      : null;
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-
-            // Value
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Valor',
-                prefixText: 'R\$ ',
+              SizedBox(height: 16.0),
+        
+              // Value
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Valor',
+                  prefixText: 'R\$ ',
+                ),
+                initialValue: value.toString(),
+                keyboardType: TextInputType.number,
+                onChanged: (input) {
+                  setState(() {
+                    value = double.tryParse(input);
+                  });
+                },
               ),
-              initialValue: value.toString(),
-              keyboardType: TextInputType.number,
-              onChanged: (input) {
-                setState(() {
-                  value = double.tryParse(input);
-                });
-              },
-            ),
-            SizedBox(height: 16.0),
-
-            // Location
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Local',
+              SizedBox(height: 16.0),
+        
+              // Location
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Local',
+                ),
+                initialValue: location,
+                onChanged: (input) {
+                  setState(() {
+                    location = input;
+                  });
+                },
               ),
-              initialValue: location,
-              onChanged: (input) {
-                setState(() {
-                  location = input;
-                });
-              },
-            ),
-            SizedBox(height: 25.0),
-
-            // Save Button
-            ShiftSubmitButton(
-              buttonText: 'Salvar',
-              selectedDate: startDate!,
-              isButtonEnabled: _isButtonEnabled,
-              onPressed: _saveEditedShift,
-            ),
-          ],
+              SizedBox(height: 25.0),
+        
+              // Save Button
+              ShiftSubmitButton(
+                buttonText: 'Salvar',
+                selectedDate: startDate!,
+                isButtonEnabled: _isButtonEnabled,
+                onPressed: _saveEditedShift,
+              ),
+            ],
+          ),
         ),
       ),
     );

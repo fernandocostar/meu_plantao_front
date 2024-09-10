@@ -39,11 +39,11 @@ class Dropdown extends StatelessWidget {
             ),
             fillColor: Colors.grey.shade100,
             filled: true,
-            contentPadding: const EdgeInsets.all(20.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
           ),
           hint: Text(
             hintText,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
           ),
           icon: const Icon(Icons.arrow_drop_down),
           iconSize: 24,

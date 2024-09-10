@@ -101,18 +101,18 @@ class _RegisterPageState extends State<RegisterPage> {
               padding: const EdgeInsets.symmetric(horizontal: 25.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 15),
                   Image(image: AssetImage(ConstImages.mainLogo), height: 70),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 15),
                   Text(
                     'Primeira vez aqui? Cadastre-se agora mesmo abaixo!',
                     style: TextStyle(
                       color: Colors.grey[800],
-                      fontSize: 16,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
                   AuthTextField(
                     controller: nameController,
                     hintText: 'Nome completo',

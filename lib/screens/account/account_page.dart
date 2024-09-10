@@ -191,6 +191,10 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Widget _buildLocationFields() {
+    print('Dropdown estados: $estados');
+    print('Dropdown value: $stateController');
+    print('Dropdown cities: $cidades');
+    print('Dropdown value: $cityController');
     return Row(
       children: [
         Expanded(

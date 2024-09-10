@@ -14,8 +14,8 @@ class StateCityProvider {
     final List<dynamic> stateJsonData = json.decode(stateJsonString);
     final List<dynamic> cityJsonData = json.decode(cityJsonString);
 
-    _states = stateJsonData.map((item) => State.fromJson(item)).toList();
-    _cities = cityJsonData.map((item) => City.fromJson(item)).toList();
+    _states = stateJsonData.map((item) => State.fromJson(item)).toSet().toList();
+    _cities = cityJsonData.map((item) => City.fromJson(item)).toSet().toList();
   }
 
   // Get the list of state names

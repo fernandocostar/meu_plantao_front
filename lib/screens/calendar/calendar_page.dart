@@ -55,7 +55,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       if (storedToken != null) {
         final response = await http.get(
-          Uri.parse('http://35.166.116.189:8080/shifts/getAll'),
+          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/shifts/getAll'),
           headers: {
             'Authorization': 'Bearer $storedToken',
           },
@@ -129,6 +129,7 @@ class _CalendarPageState extends State<CalendarPage> {
       switch (_selectedIndex) {
         case 1:
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CalendarWidget(
                 focusedDay: _focusedDay,
@@ -147,25 +148,26 @@ class _CalendarPageState extends State<CalendarPage> {
                 eventLoader: _getEventsForDay,
               ),
               if (selectedDayEvents.isNotEmpty) ...[
-                SizedBox(height: 15),
+                SizedBox(height: 8), // Reduced space
                 CarouselWidget(
                   events: selectedDayEvents,
                   primaryColor: primaryColor,
-                  onShiftUpdated: _handleShiftUpdated, // Pass the callback
+                  onShiftUpdated: _handleShiftUpdated,
                 ),
               ],
+              SizedBox(height: 8), // Reduced space
               CalendarMetricsWidget(
                   events: _events,
                   displayedMonth: _focusedDay.month,
                   displayedYear: _focusedDay.year),
-              SizedBox(height: 15),
+              SizedBox(height: 10), // Reduced space
               if (_selectedDay != null)
                 CreateShiftCalendarButton(
                   selectedDate: _selectedDay!,
-                  onShiftCreated: _handleShiftUpdated, // Pass the callback
+                  onShiftCreated: _handleShiftUpdated,
                 )
               else
-                Text('Nenhuma data selecionada'),
+                const Center(child: Text('Nenhuma data selecionada')),
             ],
           );
         case 0:
@@ -189,9 +191,8 @@ class _CalendarPageState extends State<CalendarPage> {
           icon: Icon(
             Icons.account_circle,
             color: Colors.white,
-            size: 35,
+            size: 30, // Reduced icon size
           ),
-          color: Colors.white,
           onPressed: () async {
             var result = await Navigator.push(
               context,
@@ -204,7 +205,7 @@ class _CalendarPageState extends State<CalendarPage> {
           },
         ),
         title: Text('Olá, ${name}!',
-            style: TextStyle(fontSize: 24, color: Colors.white)),
+            style: TextStyle(fontSize: 20, color: Colors.white)), // Smaller font size
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: Colors.white),
@@ -217,12 +218,14 @@ class _CalendarPageState extends State<CalendarPage> {
             onPressed: widget.onQuit,
           ),
         ],
+        toolbarHeight: kToolbarHeight - 10, // Reduce AppBar height
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Adjust padding
         child: _buildContent(),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        iconSize: 20,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

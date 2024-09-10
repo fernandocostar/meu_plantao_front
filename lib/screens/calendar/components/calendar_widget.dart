@@ -48,23 +48,40 @@ class CalendarWidget extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         defaultTextStyle: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontSize: 14, // Smaller font size for day numbers
+          fontWeight: FontWeight.w500, // Slightly lighter font weight
         ),
         weekendTextStyle: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontSize: 14, // Smaller font size for weekend numbers
+          fontWeight: FontWeight.w500, // Slightly lighter font weight
           color: Colors.red,
+        ),
+        cellMargin: EdgeInsets.all(2.0), // Reduce margin around each cell
+        todayTextStyle: TextStyle(
+          fontSize: 14,
+          color: Colors.white,
+        ),
+        selectedTextStyle: TextStyle(
+          fontSize: 14,
+          color: Colors.white,
+        ),
+        outsideTextStyle: TextStyle(
+          fontSize: 14,
         ),
       ),
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
         titleTextStyle: TextStyle(
-          fontSize: 26,
+          fontSize: 20, // Smaller font size for the header
           fontWeight: FontWeight.bold,
           color: primaryColor,
         ),
+        titleCentered: true, // Center the header title
+        leftChevronPadding: EdgeInsets.zero,
+        rightChevronPadding: EdgeInsets.zero,
+        headerPadding: EdgeInsets.symmetric(vertical: 8.0), // Adjust vertical padding
       ),
+      rowHeight: 40.0, // Adjust the row height for less vertical spacing
     );
   }
 }

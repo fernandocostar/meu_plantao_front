@@ -16,7 +16,7 @@ class CalendarMetricsWidget extends StatefulWidget {
 }
 
 class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
-  int _shiftCount = 0;
+  double _shiftCount = 0;
   double _totalValue = 0.0;
 
   @override
@@ -31,18 +31,36 @@ class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
     _calculateMetrics();
   }
 
+  String _formatNumber(double number) {
+    // If the number is an integer (e.g., 10.0), show it without decimals
+    if (number == number.roundToDouble()) {
+      return number.toStringAsFixed(0);
+    } else {
+      // Otherwise, show it with two decimals
+      return number.toStringAsFixed(1);
+    }
+  }
+
   void _calculateMetrics() {
-    int shiftCount = 0;
+    double totalHours = 0.0;
     double totalValue = 0.0;
 
     widget.events.forEach((date, shifts) {
       if (date.month == widget.displayedMonth &&
           date.year == widget.displayedYear) {
-        shiftCount += shifts.length;
-        totalValue +=
-            shifts.fold(0.0, (sum, shift) => sum + (shift['value'] ?? 0.0));
+        for (var shift in shifts) {
+          DateTime startTime = DateTime.parse(shift['startTime']);
+          DateTime endTime = DateTime.parse(shift['endTime']);
+          double duration = endTime.difference(startTime).inHours.toDouble();
+
+          totalHours += duration;
+          totalValue += shift['value'] ?? 0.0;
+        }
       }
     });
+
+    // Calculate total number of shifts based on duration sum divided by 12 hours
+    double shiftCount = (totalHours / 12);
 
     setState(() {
       _shiftCount = shiftCount;
@@ -53,21 +71,21 @@ class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(5.0),
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(5.0),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Plantões: $_shiftCount',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            'Plantões: ${_formatNumber(_shiftCount)}',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           Text(
             'Valor total: R\$ ${_totalValue.toStringAsFixed(2)}',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
         ],
       ),

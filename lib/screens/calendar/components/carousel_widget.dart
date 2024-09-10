@@ -49,32 +49,32 @@ class _CarouselWidgetState extends State<CarouselWidget> {
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(10.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "Confirmar Exclusão",
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Text(
                   "Tem certeza que deseja excluir esse plantão?",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -89,11 +89,11 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                       ),
                       child: Text(
                         "Cancelar",
-                        style: TextStyle(fontSize: 16, color: Colors.black),
+                        style: TextStyle(fontSize: 14, color: Colors.black),
                       ),
                     ),
                     ElevatedButton(
@@ -107,14 +107,14 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                         textStyle:
                             TextStyle(color: Colors.white), // White text color
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                          borderRadius: BorderRadius.circular(5.0),
                         ),
                         padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                       ),
-                      child: Text(
+                      child: const Text(
                         "Deletar",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(fontSize: 14, color: Colors.white),
                       ),
                     ),
                   ],
@@ -133,7 +133,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
       children: [
         CarouselSlider(
           options: CarouselOptions(
-            height: 250, // Card height
+            height: 220, // Card height
             enableInfiniteScroll: false,
             viewportFraction: 1.1, // Adjust width as needed
             onPageChanged: (index, reason) {
@@ -180,7 +180,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                               Text(
                                 "Detalhes do plantão:",
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: widget.primaryColor,
                                 ),
@@ -219,35 +219,35 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text(
                             "Início: $formattedStartTime",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.grey[800],
                             ),
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text(
                             "Duração: $formattedDuration",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.grey[800],
                             ),
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text(
                             "Valor: R\$${value.toStringAsFixed(2)}",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.grey[800],
                             ),
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           Text(
                             "Local: $location",
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.grey[800],
                             ),
                           ),
@@ -260,13 +260,13 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             );
           }).toList(),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 0),
         PageIndicator(
           itemCount: widget.events.length,
           currentIndex: _currentIndex,
           activeColor: widget.primaryColor,
         ),
-        SizedBox(height: 15),
+        const SizedBox(height: 5),
       ],
     );
   }

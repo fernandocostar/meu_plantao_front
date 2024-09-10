@@ -35,8 +35,8 @@ class AuthTextField extends StatelessWidget {
         fillColor: Colors.grey.shade100,
         filled: true,
         hintText: hintText,
-        hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 16),
-        contentPadding: const EdgeInsets.all(20.0),
+        hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       ),
       style: TextStyle(color: Colors.grey.shade900),
     );

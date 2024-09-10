@@ -13,7 +13,7 @@ class _HomePageState extends State<HomePage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   List<dynamic> _upcomingShifts = [];
   List<dynamic> _currentMonthShifts = [];
-  int _totalShifts = 0;
+  double _totalShifts = 0;
   int _totalHours = 0;
   double _totalEarnings = 0.0;
   bool _isLoading = true; // Add loading state
@@ -64,33 +64,42 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchCurrentMonthShifts() async {
-    try {
-      DateTime now = DateTime.now();
-      DateTime startOfMonth = DateTime(now.year, now.month, 1);
-      DateTime endOfMonth =
-          DateTime(now.year, now.month + 1, 0); // Last day of the current month
+  try {
+    DateTime now = DateTime.now();
+    DateTime startOfMonth = DateTime(now.year, now.month, 1);
+    DateTime endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(const Duration(microseconds: 1)); // End of the current month
 
-      List<dynamic> shifts = await _shiftService.fetchAllShifts();
+    List<dynamic> shifts = await _shiftService.fetchAllShifts();
 
-      _currentMonthShifts = shifts.where((shift) {
+    _currentMonthShifts = shifts.where((shift) {
+      DateTime start = DateTime.parse(shift['startTime']);
+      // Include shifts that start or end in the current month
+      return (start.isBefore(endOfMonth) && start.isAfter(startOfMonth));
+    }).toList();
+
+    // Calculate metrics for current month shifts
+    setState(() {
+      _totalHours = _currentMonthShifts.fold(0, (sum, shift) {
         DateTime start = DateTime.parse(shift['startTime']);
-        return start.isAfter(startOfMonth) && start.isBefore(endOfMonth);
-      }).toList();
-
-      // Calculate metrics for current month shifts
-      setState(() {
-        _currentMonthShifts = _currentMonthShifts;
-        _totalShifts = _currentMonthShifts.length;
-        _totalHours = _currentMonthShifts.fold(0, (sum, shift) {
-          DateTime start = DateTime.parse(shift['startTime']);
-          DateTime end = DateTime.parse(shift['endTime']);
-          return sum + end.difference(start).inHours;
-        });
-        _totalEarnings =
-            _currentMonthShifts.fold(0.0, (sum, shift) => sum + shift['value']);
+        DateTime end = DateTime.parse(shift['endTime']);
+        return sum + end.difference(start).inHours;
       });
-    } catch (e) {
-      print('Error fetching current month shifts: $e');
+      _totalShifts = _totalHours/12;
+      _totalEarnings = _currentMonthShifts.fold(0.0, (sum, shift) => sum + shift['value']);
+    });
+  } catch (e) {
+    print('Error fetching current month shifts: $e');
+  }
+}
+
+// Helper method to format the number
+  String _formatNumber(double number) {
+    // If the number is an integer (e.g., 10.0), show it without decimals
+    if (number == number.roundToDouble()) {
+      return number.toStringAsFixed(0);
+    } else {
+      // Otherwise, show it with two decimals
+      return number.toStringAsFixed(1);
     }
   }
 
@@ -99,8 +108,7 @@ class _HomePageState extends State<HomePage> {
     if (_isLoading) {
       return Scaffold(
         body: Center(
-          child:
-              CircularProgressIndicator(), // Show loading indicator while data is being fetched
+          child: CircularProgressIndicator(), // Show loading indicator while data is being fetched
         ),
       );
     }
@@ -108,7 +116,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0), // Reduced side padding
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -116,25 +124,25 @@ class _HomePageState extends State<HomePage> {
               Text(
                 'Próximos Plantões',
                 style: TextStyle(
-                  fontSize: 24.0,
+                  fontSize: 22.0, // Slightly reduced font size
                   fontWeight: FontWeight.bold,
                   color: Colors.teal[800],
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 12), // Adjusted spacing for consistency
               _buildUpcomingShiftsSection(),
 
               // Dashboard Metrics Section
-              SizedBox(height: 20),
+              SizedBox(height: 20), // Reduced spacing for separation
               Text(
                 'Visão Mensal',
                 style: TextStyle(
-                  fontSize: 24.0,
+                  fontSize: 22.0, // Slightly reduced font size
                   fontWeight: FontWeight.bold,
                   color: Colors.teal[800],
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 12), // Adjusted spacing for consistency
               _buildDashboardOverview(),
             ],
           ),
@@ -144,6 +152,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildUpcomingShiftsSection() {
+    if (_upcomingShifts.isEmpty) {
+      return Center(
+        child: Text(
+          'Nenhum plantão futuro.',
+          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+        ),
+      );
+    }
+
     return Column(
       children: _upcomingShifts.map((shift) {
         return ShiftCard(
@@ -157,30 +174,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildDashboardOverview() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildMetricCard('Número de Plantões', _totalShifts.toString()),
-        _buildMetricCard('Total de Horas', '$_totalHours horas'),
-        _buildMetricCard(
-            'Remuneração Total', 'R\$${_totalEarnings.toStringAsFixed(2)}'),
-      ],
-    );
-  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _buildMetricCard('Número de Plantões', _formatNumber(_totalShifts).toString()),
+      _buildMetricCard('Total de Horas', '$_totalHours horas'),
+      _buildMetricCard('Remuneração Total', 'R\$${_formatNumber(_totalEarnings)}'),
+    ],
+  );
+}
 
   Widget _buildMetricCard(String title, String value) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 6.0), // Reduced margin
+      elevation: 2, // Reduced elevation
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(5), // Reduced border radius
       ),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.0), // Reduced content padding
         title: Text(
           title,
           style: TextStyle(
-            fontSize: 16.0,
+            fontSize: 14.0, // Reduced font size
             fontWeight: FontWeight.w600,
             color: Colors.teal[900],
           ),
@@ -188,7 +204,7 @@ class _HomePageState extends State<HomePage> {
         trailing: Text(
           value,
           style: TextStyle(
-            fontSize: 16.0,
+            fontSize: 14.0, // Reduced font size
             fontWeight: FontWeight.bold,
             color: Colors.teal[700],
           ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
 
 import 'package:meu_plantao_front/service/auth_service.dart';
 import 'package:meu_plantao_front/screens/auth/components/auth_submit_button.dart';
@@ -50,18 +48,27 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final double padding = 25.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: padding),
           child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 600, // Constrain max width to ensure it looks good on larger screens
+              ),
               child: Column(
                 children: [
-                  const SizedBox(height: 180),
-                  Image.asset(ConstImages.mainLogo, height: 120),
-                  const SizedBox(height: 50),
+                  SizedBox(height: screenSize.height * 0.13),
+                  Image.asset(
+                    ConstImages.mainLogo,
+                    height: screenSize.height * 0.12, // Adjust logo size based on screen height
+                  ),
+                  SizedBox(height: screenSize.height * 0.05),
                   Text(
                     'Vamos começar a organizar sua rotina!',
                     style: TextStyle(
@@ -69,15 +76,16 @@ class LoginPage extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: screenSize.height * 0.03),
                   AuthTextField(
                     controller: emailController,
                     hintText: 'E-mail',
                     obscureText: false,
                     validator: FormValidators.validateEmail,
                   ),
-                  const SizedBox(height: 15),
+                  SizedBox(height: screenSize.height * 0.02),
                   AuthTextField(
                     controller: passwordController,
                     hintText: 'Senha',
@@ -85,23 +93,20 @@ class LoginPage extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Esqueceu sua senha?',
-                          style:
-                              TextStyle(color: Colors.grey[800], fontSize: 14),
-                        ),
-                      ],
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Esqueceu sua senha?',
+                        style: TextStyle(color: Colors.grey[800], fontSize: 14),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 35.0),
+                  SizedBox(height: screenSize.height * 0.05),
                   AuthSubmitButton(
-                      onTap: () => signUserIn(context),
-                      text: 'Entrar' // Passando o contexto
-                      ),
-                  const SizedBox(height: 40.0),
+                    onTap: () => signUserIn(context),
+                    text: 'Entrar',
+                  ),
+                  SizedBox(height: screenSize.height * 0.05),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

@@ -16,12 +16,11 @@ class AccountService {
 
       if (token != null) {
         final response = await http.get(
-          Uri.parse('http://35.166.116.189:8080/account/info'),
+          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/account/info'),
           headers: {
             'Authorization': 'Bearer $token',
           },
         );
-
         if (response.statusCode == 200) {
           return jsonDecode(response.body);
         } else {
@@ -48,7 +47,7 @@ class AccountService {
 
       if (token != null) {
         final response = await http.post(
-          Uri.parse('http://35.166.116.189:8080/account/update'),
+          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/account/update'),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
