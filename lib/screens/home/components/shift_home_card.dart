@@ -3,7 +3,7 @@ import 'package:intl/intl.dart'; // For date and time formatting
 
 class ShiftCard extends StatelessWidget {
   final String startTime;
-  final String location;
+  final Map<String, dynamic> location;
   final double duration; // Duration in hours
   final double value;
 
@@ -68,7 +68,7 @@ class ShiftCard extends StatelessWidget {
             const SizedBox(
                 height: 2), // Reduced space between time and location
             Text(
-              location, // Location text
+              location['name'], // Location text
               style: TextStyle(
                 fontSize: 14.0,
                 color: Colors.grey[700],

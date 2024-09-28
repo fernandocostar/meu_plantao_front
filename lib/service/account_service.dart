@@ -16,7 +16,7 @@ class AccountService {
 
       if (token != null) {
         final response = await http.get(
-          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/account/info'),
+          Uri.parse('http://10.0.2.2:3000/account/info'),
           headers: {
             'Authorization': 'Bearer $token',
           },
@@ -47,7 +47,7 @@ class AccountService {
 
       if (token != null) {
         final response = await http.post(
-          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/account/update'),
+          Uri.parse('http://10.0.2.2:3000/account/update'),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',

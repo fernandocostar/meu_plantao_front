@@ -8,13 +8,13 @@ import 'package:meu_plantao_front/screens/auth/components/auth_submit_button.dar
 import 'package:meu_plantao_front/screens/auth/components/auth_text_field.dart';
 import 'package:meu_plantao_front/screens/auth/components/dropdown.dart';
 import 'package:meu_plantao_front/screens/auth/enums/ProfessionalTypeEnum.dart';
-import 'package:meu_plantao_front/screens/auth/AuthValidators.dart';
+import 'package:meu_plantao_front/screens/auth/auth_validators.dart';
 import 'package:meu_plantao_front/util/constants.dart';
 import 'package:meu_plantao_front/screens/common/state_city_provider.dart'
     as state_city_provider;
 
-import '../calendar/calendar_page.dart';
-import 'login_page.dart';
+import '../../calendar/calendar_page.dart';
+import '../login/login_page.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -104,14 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 15),
                   Image(image: AssetImage(ConstImages.mainLogo), height: 70),
                   const SizedBox(height: 15),
-                  Text(
-                    'Primeira vez aqui? Cadastre-se agora mesmo abaixo!',
-                    style: TextStyle(
-                      color: Colors.grey[800],
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  const RegisterHeaderText(),
                   const SizedBox(height: 25),
                   AuthTextField(
                     controller: nameController,
@@ -123,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: emailController,
                     hintText: 'E-mail',
                     obscureText: false,
-                    validator: FormValidators.validateEmail,
+                    validator: AuthValidators.validateEmail,
                   ),
                   const SizedBox(height: 15),
                   Dropdown(
@@ -182,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: passwordController,
                     hintText: 'Crie sua senha',
                     obscureText: true,
-                    validator: FormValidators.validatePassword,
+                    validator: AuthValidators.validatePassword,
                   ),
                   SizedBox(height: 15),
                   AuthTextField(
@@ -202,28 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     text: 'Cadastrar',
                   ),
                   const SizedBox(height: 20.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Ja possui uma conta? ',
-                        style: TextStyle(color: Colors.grey[800], fontSize: 14),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          navigateToLoginPage(context);
-                        },
-                        child: Text(
-                          'Faca login aqui!',
-                          style: TextStyle(
-                            color: Colors.blue[800],
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  const LoginText(),
                 ],
               ),
             ),
@@ -266,6 +238,55 @@ class _RegisterPageState extends State<RegisterPage> {
     await secureStorage.write(
       key: 'token',
       value: token,
+    );
+  }
+}
+
+class RegisterHeaderText extends StatelessWidget {
+  const RegisterHeaderText({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Primeira vez aqui? Cadastre-se agora mesmo abaixo!',
+      style: TextStyle(
+        color: Colors.grey[800],
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+}
+
+class LoginText extends StatelessWidget {
+  const LoginText({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Ja possui uma conta? ',
+          style: TextStyle(color: Colors.grey[800], fontSize: 14),
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LoginPage()),
+            );
+          },
+          child: Text(
+            'Faca login aqui!',
+            style: TextStyle(
+              color: Colors.blue[800],
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

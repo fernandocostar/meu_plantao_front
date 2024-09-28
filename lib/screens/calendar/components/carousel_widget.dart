@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:intl/intl.dart';
 import 'carousel_page_indicator.dart';
-import '../edit_shift/edit_shift_page.dart'; // Import the PageIndicator widget
+import '../../edit_shift/edit_shift_page.dart';
 import '../../../service/shift_service.dart';
 import '../../common/components/auto_close_dialog.dart';
 
 class CarouselWidget extends StatefulWidget {
   final List<dynamic> events;
   final Color primaryColor;
-  final VoidCallback onShiftUpdated; // Add this callback
+  final VoidCallback onShiftUpdated;
 
   CarouselWidget({
     required this.events,
     required this.primaryColor,
-    required this.onShiftUpdated, // Initialize it in the constructor
+    required this.onShiftUpdated,
   });
 
   @override
@@ -24,15 +24,30 @@ class CarouselWidget extends StatefulWidget {
 class _CarouselWidgetState extends State<CarouselWidget> {
   int _currentIndex = 0;
 
+  // Constants for styling
+  static const double _fontSize = 16.0;
+  static const double _headerFontSize = 18.0;
+  static const double _buttonFontSize = 14.0;
+  static const double _padding = 16.0;
+  static const double _cardElevation = 4.0;
+  static const double _borderRadius = 16.0;
+  static const double _dialogBorderRadius = 10.0;
+  static const double _buttonBorderRadius = 8.0;
+  static const double _deleteButtonBorderRadius = 5.0;
+  static const Color _cancelButtonColor = Color(0xFFE0E0E0); // Equivalent to Colors.grey[300]
+  static const Color _deleteButtonColor = Color(0xFFFF0000); // Equivalent to Colors.red
+  static const Color _whiteColor = Color(0xFFFFFFFF); // Equivalent to Colors.white
+  static const Color _blackColor = Color(0xFF000000); // Equivalent to Colors.black
+  static const Color _black87Color = Color(0xDD000000); // Equivalent to Colors.black87
+  static const Color _greyColor = Color(0xFF9E9E9E); // Equivalent to Colors.grey
+
   Future<void> _deleteShift(dynamic shift) async {
     try {
       final ShiftService shiftService = ShiftService();
       await shiftService.deleteShift(shift['id']);
     } catch (e) {
-      // Handle error, e.g., show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Falha ao deletar plantao. Tente novamente')),
+        const SnackBar(content: Text('Falha ao deletar plantao. Tente novamente')),
       );
       return;
     }
@@ -49,7 +64,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.circular(_dialogBorderRadius),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
@@ -59,22 +74,22 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                 Text(
                   "Confirmar Exclusão",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: _headerFontSize,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: widget.primaryColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   "Tem certeza que deseja excluir esse plantão?",
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
+                    fontSize: _fontSize,
+                    color: _black87Color,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -83,17 +98,15 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                         Navigator.of(context).pop(); // Close the dialog
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors
-                            .grey[300], // Light grey background// Text color
+                        backgroundColor: _cancelButtonColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                          borderRadius: BorderRadius.circular(_buttonBorderRadius),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                       ),
-                      child: Text(
+                      child: const Text(
                         "Cancelar",
-                        style: TextStyle(fontSize: 14, color: Colors.black),
+                        style: TextStyle(fontSize: _buttonFontSize, color: _blackColor),
                       ),
                     ),
                     ElevatedButton(
@@ -102,19 +115,15 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                         _deleteShift(shift); // Call the delete method
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.red, // Red background for delete
-                        textStyle:
-                            TextStyle(color: Colors.white), // White text color
+                        backgroundColor: _deleteButtonColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5.0),
+                          borderRadius: BorderRadius.circular(_deleteButtonBorderRadius),
                         ),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                       ),
                       child: const Text(
                         "Deletar",
-                        style: TextStyle(fontSize: 14, color: Colors.white),
+                        style: TextStyle(fontSize: _buttonFontSize, color: _whiteColor),
                       ),
                     ),
                   ],
@@ -146,41 +155,37 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             DateTime startTime = DateTime.parse(shift['startTime']);
             DateTime endTime = DateTime.parse(shift['endTime']);
             Duration duration = endTime.difference(startTime);
-            String formattedStartTime =
-                DateFormat('dd/MM/yyyy HH:mm').format(startTime);
-            String formattedDuration =
-                "${duration.inHours}h ${duration.inMinutes % 60}m";
+            String formattedStartTime = DateFormat('dd/MM/yyyy HH:mm').format(startTime);
+            String formattedDuration = "${duration.inHours}h ${duration.inMinutes % 60}m";
             double value = shift['value'];
-            String location = shift['location'];
+            String location = shift['location']['name'];
 
             return LayoutBuilder(
               builder: (context, constraints) {
-                double cardWidth =
-                    constraints.maxWidth * 0.9; // Adjust width as needed
+                double cardWidth = constraints.maxWidth * 0.9; // Adjust width as needed
 
                 return Container(
                   margin: EdgeInsets.symmetric(vertical: 10.0),
                   width: cardWidth,
                   child: Card(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius: BorderRadius.circular(_borderRadius),
                     ),
-                    elevation: 4,
-                    color: Colors.white,
+                    elevation: _cardElevation,
+                    color: _whiteColor,
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(_padding),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment
-                                .end, // Aligns both icons to the right
+                            mainAxisAlignment: MainAxisAlignment.end, // Aligns both icons to the right
                             children: [
                               Text(
                                 "Detalhes do plantão:",
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: _headerFontSize,
                                   fontWeight: FontWeight.bold,
                                   color: widget.primaryColor,
                                 ),
@@ -203,18 +208,16 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                                     widget.onShiftUpdated();
                                   }
                                 },
-                                child: Icon(Icons.edit, color: Colors.grey),
+                                child: Icon(Icons.edit, color: _greyColor),
                               ),
-                              SizedBox(
-                                  width:
-                                      20), // Controls the spacing between the icons
+                              SizedBox(width: 20), // Controls the spacing between the icons
                               InkWell(
                                 onTap: () {
                                   _showDeleteConfirmationDialog(context, shift);
                                 },
                                 child: const Icon(
                                   Icons.delete,
-                                  color: Colors.grey,
+                                  color: _greyColor,
                                 ),
                               ),
                             ],
@@ -223,32 +226,32 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                           Text(
                             "Início: $formattedStartTime",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[800],
+                              fontSize: _fontSize,
+                              color: _black87Color,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
                             "Duração: $formattedDuration",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[800],
+                              fontSize: _fontSize,
+                              color: _black87Color,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
                             "Valor: R\$${value.toStringAsFixed(2)}",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[800],
+                              fontSize: _fontSize,
+                              color: _black87Color,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
                             "Local: $location",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[800],
+                              fontSize: _fontSize,
+                              color: _black87Color,
                             ),
                           ),
                         ],

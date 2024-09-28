@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meu_plantao_front/screens/calendar/create_shift/create_shift_page.dart';
+import 'package:meu_plantao_front/screens/create_shift/create_shift_page.dart';
 
 class CreateShiftCalendarButton extends StatefulWidget {
   final DateTime selectedDate;
@@ -17,6 +17,21 @@ class CreateShiftCalendarButton extends StatefulWidget {
 
 class _CreateShiftCalendarButtonState extends State<CreateShiftCalendarButton> {
   bool _isPressed = false;
+
+  // Constants for styling
+  static const double _padding = 25.0;
+  static const double _fontSize = 18.0;
+  static const double _borderRadius = 12.0;
+  static const Color _pressedColor = Color.fromARGB(255, 24, 148, 68);
+  static const Color _defaultColor = Color.fromARGB(255, 32, 184, 86);
+  static const Color _textColor = Colors.white;
+  static const FontWeight _fontWeight = FontWeight.w600;
+  static const Duration _animationDuration = Duration(milliseconds: 200);
+  static const Curve _animationCurve = Curves.easeInOut;
+  static const double _boxShadowOpacity = 0.2;
+  static const double _boxShadowSpreadRadius = 1.0;
+  static const double _boxShadowBlurRadius = 6.0;
+  static const Offset _boxShadowOffset = Offset(0, 3);
 
   @override
   Widget build(BuildContext context) {
@@ -42,22 +57,20 @@ class _CreateShiftCalendarButtonState extends State<CreateShiftCalendarButton> {
           _isPressed = isHighlighted;
         });
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(_borderRadius),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(25.0),
+        duration: _animationDuration,
+        curve: _animationCurve,
+        padding: const EdgeInsets.all(_padding),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: _isPressed
-              ? const Color.fromARGB(255, 24, 148, 68)
-              : const Color.fromARGB(255, 32, 184, 86),
+          borderRadius: BorderRadius.circular(_borderRadius),
+          color: _isPressed ? _pressedColor : _defaultColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(_boxShadowOpacity),
+              spreadRadius: _boxShadowSpreadRadius,
+              blurRadius: _boxShadowBlurRadius,
+              offset: _boxShadowOffset,
             ),
           ],
         ),
@@ -65,9 +78,9 @@ class _CreateShiftCalendarButtonState extends State<CreateShiftCalendarButton> {
           child: Text(
             'Criar plantão',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              color: _textColor,
+              fontSize: _fontSize,
+              fontWeight: _fontWeight,
             ),
           ),
         ),

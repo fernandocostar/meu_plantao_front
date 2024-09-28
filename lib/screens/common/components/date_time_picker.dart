@@ -21,13 +21,22 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   DateTime? selectedDateTime;
   late TextEditingController _dateTimeController;
 
+  // Constants for styling
+  static const double _paddingHorizontal = 25.0;
+  static const double _paddingVertical = 8.0;
+  static const double _fontSize = 16.0;
+  static const double _borderRadius = 8.0;
+  static const Color _labelColor = Color(0xFF424242); // Equivalent to Colors.grey[800]
+  static const Color _iconColor = Color(0xFF1565C0); // Equivalent to Colors.blue[800]
+  static const String _dateFormat = 'dd/MM/yyyy HH:mm';
+
   @override
   void initState() {
     super.initState();
     selectedDateTime = widget.initialDateTime;
     _dateTimeController = TextEditingController(
       text: selectedDateTime != null
-          ? DateFormat('dd/MM/yyyy HH:mm').format(selectedDateTime!)
+          ? DateFormat(_dateFormat).format(selectedDateTime!)
           : '',
     );
   }
@@ -56,7 +65,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
             pickedTime.minute,
           );
           _dateTimeController.text =
-              DateFormat('dd/MM/yyyy HH:mm').format(selectedDateTime!);
+              DateFormat(_dateFormat).format(selectedDateTime!);
           widget.onChanged?.call(selectedDateTime);
         });
       }
@@ -66,7 +75,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      padding: const EdgeInsets.symmetric(horizontal: _paddingHorizontal),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,21 +83,21 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
             widget.labelText,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.grey[800],
+              fontSize: _fontSize,
+              color: _labelColor,
             ),
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: _paddingVertical),
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _dateTimeController,
-                  readOnly: true, // Impede a edição direta do campo
+                  readOnly: true, // Prevents direct editing of the field
                   decoration: InputDecoration(
                     hintText: 'DD/MM/YYYY HH:MM',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(_borderRadius),
                     ),
                   ),
                   inputFormatters: [
@@ -96,9 +105,9 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: _paddingVertical),
               IconButton(
-                icon: Icon(Icons.calendar_today, color: Colors.blue[800]),
+                icon: Icon(Icons.calendar_today, color: _iconColor),
                 onPressed: () => _selectDateTime(context),
               ),
             ],

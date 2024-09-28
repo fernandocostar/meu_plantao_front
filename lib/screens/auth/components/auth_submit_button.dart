@@ -11,7 +11,15 @@ class AuthSubmitButton extends StatefulWidget {
 }
 
 class _AuthSubmitButtonState extends State<AuthSubmitButton> {
-  String get text => widget.text;
+  static const double _padding = 25.0;
+  static const double _borderRadius = 12.0;
+  static const Color _defaultColor = Color.fromARGB(255, 32, 184, 86);
+  static const Color _pressedColor = Color.fromARGB(255, 24, 148, 68);
+  static const TextStyle _textStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+  );
 
   bool _isPressed = false;
 
@@ -24,16 +32,14 @@ class _AuthSubmitButtonState extends State<AuthSubmitButton> {
           _isPressed = isHighlighted;
         });
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(_borderRadius),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(25.0),
+        padding: const EdgeInsets.all(_padding),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: _isPressed
-              ? const Color.fromARGB(255, 24, 148, 68)
-              : const Color.fromARGB(255, 32, 184, 86),
+          borderRadius: BorderRadius.circular(_borderRadius),
+          color: _isPressed ? _pressedColor : _defaultColor,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -45,12 +51,8 @@ class _AuthSubmitButtonState extends State<AuthSubmitButton> {
         ),
         child: Center(
           child: Text(
-            this.text,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            widget.text,
+            style: _textStyle,
           ),
         ),
       ),

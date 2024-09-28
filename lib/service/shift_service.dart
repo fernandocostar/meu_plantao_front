@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ShiftService {
-  final String apiUrl = 'https://98f6-201-78-146-202.ngrok-free.app/shifts';
+  final String apiUrl = 'http://10.0.2.2:3000/shifts';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<void> createShift({

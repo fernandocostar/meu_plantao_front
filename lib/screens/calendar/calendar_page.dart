@@ -10,7 +10,7 @@ import 'package:meu_plantao_front/screens/calendar/components/calendar_metrics_w
 import 'package:meu_plantao_front/screens/home/home_page.dart';
 
 class CalendarPage extends StatefulWidget {
-  String name;
+  final String name;
   final String email;
   final String token;
   final VoidCallback onQuit;
@@ -34,14 +34,27 @@ class _CalendarPageState extends State<CalendarPage> {
 
   String name = '';
 
+  final FlutterSecureStorage _storage = FlutterSecureStorage();
+
+  // Constants for styling
+  static const double _iconSize = 30.0;
+  static const double _appBarFontSize = 20.0;
+  static const double _bottomNavIconSize = 20.0;
+  static const double _paddingHorizontal = 8.0;
+  static const double _paddingVertical = 4.0;
+  static const double _toolbarHeight = kToolbarHeight - 10;
+  static const double _calendarSpacing = 8.0;
+  static const double _metricsSpacing = 10.0;
+  static const Color _primaryColor = Colors.teal;
+  static const Color _whiteColor = Colors.white;
+  static const Color _greyColor = Colors.grey;
+
   @override
   void initState() {
     super.initState();
     _fetchShifts();
     name = widget.name;
   }
-
-  final FlutterSecureStorage _storage = FlutterSecureStorage();
 
   @override
   void didChangeDependencies() {
@@ -55,7 +68,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       if (storedToken != null) {
         final response = await http.get(
-          Uri.parse('https://98f6-201-78-146-202.ngrok-free.app/shifts/getAll'),
+          Uri.parse('http://10.0.2.2:3000/shifts/getAll'),
           headers: {
             'Authorization': 'Bearer $storedToken',
           },
@@ -111,87 +124,78 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+  Widget _buildContent() {
+    switch (_selectedIndex) {
+      case 1:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CalendarWidget(
+              focusedDay: _focusedDay,
+              selectedDay: _selectedDay,
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              onPageChanged: (focusedDay) {
+                setState(() {
+                  _focusedDay = focusedDay;
+                });
+              },
+              eventLoader: _getEventsForDay,
+            ),
+            if (_selectedDay != null) ...[
+              SizedBox(height: _calendarSpacing),
+              CarouselWidget(
+                events: _getEventsForDay(_selectedDay!),
+                primaryColor: _primaryColor,
+                onShiftUpdated: _handleShiftUpdated,
+              ),
+              SizedBox(height: _calendarSpacing),
+              CalendarMetricsWidget(
+                events: _events,
+                displayedMonth: _focusedDay.month,
+                displayedYear: _focusedDay.year,
+              ),
+              SizedBox(height: _metricsSpacing),
+              CreateShiftCalendarButton(
+                selectedDate: _selectedDay!,
+                onShiftCreated: _handleShiftUpdated,
+              ),
+            ] else
+              const Center(child: Text('Nenhuma data selecionada')),
+          ],
+        );
+      case 0:
+        return HomePage();
+      case 2:
+        return Center(
+          child: Text(
+            'Relatórios em breve!',
+            style: TextStyle(
+              fontSize: 24,
+              color: _primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      default:
+        return Center(child: Text('Unknown Page'));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Colors.teal;
-
-    List<dynamic> selectedDayEvents =
-        _selectedDay != null ? _getEventsForDay(_selectedDay!) : [];
-
-    // Sort shifts by start time
-    selectedDayEvents.sort((a, b) {
-      DateTime startA = DateTime.parse(a['startTime']);
-      DateTime startB = DateTime.parse(b['startTime']);
-      return startA.compareTo(startB);
-    });
-
-    Widget _buildContent() {
-      switch (_selectedIndex) {
-        case 1:
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CalendarWidget(
-                focusedDay: _focusedDay,
-                selectedDay: _selectedDay,
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                  });
-                },
-                eventLoader: _getEventsForDay,
-              ),
-              if (selectedDayEvents.isNotEmpty) ...[
-                SizedBox(height: 8), // Reduced space
-                CarouselWidget(
-                  events: selectedDayEvents,
-                  primaryColor: primaryColor,
-                  onShiftUpdated: _handleShiftUpdated,
-                ),
-              ],
-              SizedBox(height: 8), // Reduced space
-              CalendarMetricsWidget(
-                  events: _events,
-                  displayedMonth: _focusedDay.month,
-                  displayedYear: _focusedDay.year),
-              SizedBox(height: 10), // Reduced space
-              if (_selectedDay != null)
-                CreateShiftCalendarButton(
-                  selectedDate: _selectedDay!,
-                  onShiftCreated: _handleShiftUpdated,
-                )
-              else
-                const Center(child: Text('Nenhuma data selecionada')),
-            ],
-          );
-        case 0:
-          return HomePage();
-        case 2:
-          return Center(
-              child: Text('Relatórios em breve!',
-                  style: TextStyle(
-                      fontSize: 24,
-                      color: primaryColor,
-                      fontWeight: FontWeight.bold)));
-        default:
-          return Center(child: Text('Unknown Page'));
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: primaryColor,
+        backgroundColor: _primaryColor,
         leading: IconButton(
           icon: Icon(
             Icons.account_circle,
-            color: Colors.white,
-            size: 30, // Reduced icon size
+            color: _whiteColor,
+            size: _iconSize,
           ),
           onPressed: () async {
             var result = await Navigator.push(
@@ -204,28 +208,33 @@ class _CalendarPageState extends State<CalendarPage> {
             await _fetchShifts();
           },
         ),
-        title: Text('Olá, ${name}!',
-            style: TextStyle(fontSize: 20, color: Colors.white)), // Smaller font size
+        title: Text(
+          'Olá, ${name}!',
+          style: TextStyle(fontSize: _appBarFontSize, color: _whiteColor),
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
+            icon: Icon(Icons.refresh, color: _whiteColor),
             onPressed: () async {
               await _fetchShifts();
             },
           ),
           IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
+            icon: Icon(Icons.logout, color: _whiteColor),
             onPressed: widget.onQuit,
           ),
         ],
-        toolbarHeight: kToolbarHeight - 10, // Reduce AppBar height
+        toolbarHeight: _toolbarHeight,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Adjust padding
+        padding: const EdgeInsets.symmetric(
+          horizontal: _paddingHorizontal,
+          vertical: _paddingVertical,
+        ),
         child: _buildContent(),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        iconSize: 20,
+        iconSize: _bottomNavIconSize,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -241,8 +250,8 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: _primaryColor,
+        unselectedItemColor: _greyColor,
         onTap: _onItemTapped,
       ),
     );

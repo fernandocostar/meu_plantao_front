@@ -5,7 +5,8 @@ class CalendarMetricsWidget extends StatefulWidget {
   final int displayedMonth;
   final int displayedYear;
 
-  CalendarMetricsWidget({
+  const CalendarMetricsWidget({
+    super.key,
     required this.events,
     required this.displayedMonth,
     required this.displayedYear,
@@ -18,6 +19,13 @@ class CalendarMetricsWidget extends StatefulWidget {
 class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
   double _shiftCount = 0;
   double _totalValue = 0.0;
+
+  // Constants for styling
+  static const double _padding = 5.0;
+  static const double _borderRadius = 5.0;
+  static const double _fontSize = 14.0;
+  static const Color _backgroundColor = Color(0xFFEEEEEE); // Equivalent to Colors.grey[200]
+  static const FontWeight _fontWeight = FontWeight.bold;
 
   @override
   void didUpdateWidget(CalendarMetricsWidget oldWidget) {
@@ -33,12 +41,9 @@ class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
 
   String _formatNumber(double number) {
     // If the number is an integer (e.g., 10.0), show it without decimals
-    if (number == number.roundToDouble()) {
-      return number.toStringAsFixed(0);
-    } else {
-      // Otherwise, show it with two decimals
-      return number.toStringAsFixed(1);
-    }
+    return number == number.roundToDouble()
+        ? number.toStringAsFixed(0)
+        : number.toStringAsFixed(1);
   }
 
   void _calculateMetrics() {
@@ -60,7 +65,7 @@ class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
     });
 
     // Calculate total number of shifts based on duration sum divided by 12 hours
-    double shiftCount = (totalHours / 12);
+    double shiftCount = totalHours / 12;
 
     setState(() {
       _shiftCount = shiftCount;
@@ -71,21 +76,21 @@ class _CalendarMetricsWidgetState extends State<CalendarMetricsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(5.0),
+      padding: const EdgeInsets.all(_padding),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(5.0),
+        color: _backgroundColor,
+        borderRadius: BorderRadius.circular(_borderRadius),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Plantões: ${_formatNumber(_shiftCount)}',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: _fontSize, fontWeight: _fontWeight),
           ),
           Text(
             'Valor total: R\$ ${_totalValue.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: _fontSize, fontWeight: _fontWeight),
           ),
         ],
       ),

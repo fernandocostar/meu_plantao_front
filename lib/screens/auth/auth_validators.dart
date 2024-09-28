@@ -1,4 +1,4 @@
-class FormValidators {
+class AuthValidators {
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'A senha não pode estar vazia';

@@ -1,25 +1,29 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:meu_plantao_front/screens/auth/components/auth_submit_button.dart';
 import 'package:meu_plantao_front/screens/auth/components/auth_text_field.dart';
 import 'package:meu_plantao_front/screens/auth/components/dropdown.dart';
 import 'package:meu_plantao_front/screens/auth/enums/ProfessionalTypeEnum.dart';
-import 'package:meu_plantao_front/screens/common/state_city_provider.dart'
-    as state_city_provider;
+import 'package:meu_plantao_front/screens/common/state_city_provider.dart' as state_city_provider;
 import 'package:meu_plantao_front/service/account_service.dart';
 import 'package:meu_plantao_front/screens/common/components/auto_close_dialog.dart';
+import 'package:meu_plantao_front/screens/account/account_page_validators.dart';
 
 class AccountPage extends StatefulWidget {
+  static const String failedToUpdateAccountInfo = 'Falha ao recuperar informações da conta.';
+  static const String successUpdatingAccountInfo = 'Informações atualizadas com sucesso.';
+
   final Function(String) onNameUpdated;
 
-  AccountPage({required this.onNameUpdated});
+  const AccountPage({required this.onNameUpdated});
 
   @override
   _AccountPageState createState() => _AccountPageState();
 }
 
 class _AccountPageState extends State<AccountPage> {
-  final stateCityProvider = state_city_provider.StateCityProvider();
-  final AccountService accountService = AccountService();
+  late final stateCityProvider = state_city_provider.StateCityProvider();
+  late final AccountService accountService = AccountService();
 
   final nameController = TextEditingController();
   final professionalRegisterController = TextEditingController();
@@ -27,8 +31,7 @@ class _AccountPageState extends State<AccountPage> {
   final stateController = ValueNotifier<String?>(null);
   final cityController = ValueNotifier<String?>(null);
 
-  List<String> professionalTypes =
-      ProfessionalType.values.map((type) => type.label).toList();
+  List<String> professionalTypes = ProfessionalType.values.map((type) => type.label).toList();
   List<String> estados = [];
   List<String> cidades = [];
 
@@ -41,8 +44,7 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _initializeData() async {
-    await _loadInitialStateData();
-    await _fetchAccountInfo();
+    await Future.wait([_loadInitialStateData(), _fetchAccountInfo()]);
   }
 
   Future<void> _loadInitialStateData() async {
@@ -58,11 +60,11 @@ class _AccountPageState extends State<AccountPage> {
       if (data != null) {
         _updateUIWithAccountInfo(data);
       } else {
-        _showErrorDialog('Failed to load account information.');
+        _showErrorDialog(AccountPage.failedToUpdateAccountInfo);
       }
     } catch (e) {
-      print('Error fetching account info: $e');
-      _showErrorDialog('An error occurred while fetching account information.');
+      log('Error fetching account info: $e');
+      _showErrorDialog(AccountPage.failedToUpdateAccountInfo);
     } finally {
       setState(() {
         isLoading = false;
@@ -74,8 +76,7 @@ class _AccountPageState extends State<AccountPage> {
     setState(() {
       nameController.text = data['name'];
       professionalRegisterController.text = data['professionalRegister'];
-      professionalTypeController.value =
-          ProfessionalType.values[data['professionalType']].label;
+      professionalTypeController.value = ProfessionalType.values[data['professionalType']].label;
       stateController.value = data['state'];
       cityController.value = data['city'];
       cidades = stateCityProvider.getCitiesByState(stateController.value!);
@@ -83,6 +84,16 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _handleUpdate() async {
+    // Perform validation using the validators
+    final nameError = AccountPageValidators.validateName(nameController.text);
+    final registerError = AccountPageValidators.validateProfessionalRegister(professionalRegisterController.text);
+
+    if (nameError != null || registerError != null) {
+      _showErrorDialog(nameError ?? registerError!);
+      return;
+    }
+
+    // If validation passes, proceed to update account info
     try {
       await accountService.updateAccountInfo(
         name: nameController.text,
@@ -91,27 +102,18 @@ class _AccountPageState extends State<AccountPage> {
         state: stateController.value!,
         city: cityController.value!,
       );
-      AutoCloseDialog.show(context, 'Informações atualizadas com sucesso');
+      AutoCloseDialog.show(context, AccountPage.successUpdatingAccountInfo);
       widget.onNameUpdated(nameController.text);
     } catch (e) {
-      print('Error updating account info: $e');
-      _showErrorDialog('An error occurred while updating account information.');
+      log('Error updating account info: $e');
+      _showErrorDialog(AccountPage.failedToUpdateAccountInfo);
     }
   }
 
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Erro'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (ctx) => ErrorDialog(message: message),
     );
   }
 
@@ -128,10 +130,7 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Minha Conta')),
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return _buildLoadingState();
     }
 
     return Scaffold(
@@ -142,13 +141,36 @@ class _AccountPageState extends State<AccountPage> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              _buildNameField(),
+              AuthTextField(
+                controller: nameController,
+                hintText: 'Nome completo',
+                obscureText: false,
+              ),
               const SizedBox(height: 15),
-              _buildProfessionalTypeDropdown(),
+              Dropdown(
+                items: professionalTypes,
+                hintText: 'Selecione sua profissão',
+                controller: professionalTypeController,
+              ),
               const SizedBox(height: 15),
-              _buildProfessionalRegisterField(),
+              AuthTextField(
+                controller: professionalRegisterController,
+                hintText: 'Registro profissional',
+                obscureText: false,
+              ),
               const SizedBox(height: 15),
-              _buildLocationFields(),
+              LocationFields(
+                estados: estados,
+                cidades: cidades,
+                stateController: stateController,
+                cityController: cityController,
+                onStateChanged: (value) {
+                  setState(() {
+                    cidades = stateCityProvider.getCitiesByState(value!);
+                    cityController.value = null;
+                  });
+                },
+              ),
               const SizedBox(height: 20),
               AuthSubmitButton(
                 onTap: _handleUpdate,
@@ -161,71 +183,64 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _buildNameField() {
-    return AuthTextField(
-      controller: nameController,
-      hintText: 'Nome completo',
-      obscureText: false,
+  Widget _buildLoadingState() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Minha Conta')),
+      body: const Center(child: CircularProgressIndicator()),
     );
   }
+}
 
-  Widget _buildProfessionalTypeDropdown() {
-    return Dropdown(
-      items: professionalTypes,
-      hintText: 'Selecione sua profissão',
-      controller: professionalTypeController,
-      onChanged: (newValue) {
-        setState(() {
-          professionalTypeController.value = newValue;
-        });
-      },
-    );
-  }
+class LocationFields extends StatelessWidget {
+  final List<String> estados;
+  final List<String> cidades;
+  final ValueNotifier<String?> stateController;
+  final ValueNotifier<String?> cityController;
+  final Function(String?) onStateChanged;
 
-  Widget _buildProfessionalRegisterField() {
-    return AuthTextField(
-      controller: professionalRegisterController,
-      hintText: 'Registro profissional',
-      obscureText: false,
-    );
-  }
+  const LocationFields({
+    required this.estados,
+    required this.cidades,
+    required this.stateController,
+    required this.cityController,
+    required this.onStateChanged,
+  });
 
-  Widget _buildLocationFields() {
-    print('Dropdown estados: $estados');
-    print('Dropdown value: $stateController');
-    print('Dropdown cities: $cidades');
-    print('Dropdown value: $cityController');
-    return Row(
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        Expanded(
-          flex: 2,
-          child: Dropdown(
-            items: estados,
-            hintText: 'Estado',
-            controller: stateController,
-            onChanged: (newValue) {
-              setState(() {
-                stateController.value = newValue;
-                cidades =
-                    stateCityProvider.getCitiesByState(stateController.value!);
-                cityController.value = null;
-              });
-            },
-          ),
+        Dropdown(
+          items: estados,
+          hintText: 'Selecione seu estado',
+          controller: stateController,
+          onChanged: onStateChanged,
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          flex: 3,
-          child: Dropdown(
-            items: cidades,
-            hintText: 'Cidade',
-            controller: cityController,
-            onChanged: (newValue) {
-              setState(() {
-                cityController.value = newValue;
-              });
-            },
-          ),
+        const SizedBox(height: 15),
+        Dropdown(
+          items: cidades,
+          hintText: 'Selecione sua cidade',
+          controller: cityController,
+        ),
+      ],
+    );
+  }
+}
+
+class ErrorDialog extends StatelessWidget {
+  final String message;
+
+  const ErrorDialog({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Erro'),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
         ),
       ],
     );

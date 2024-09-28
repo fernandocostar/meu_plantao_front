@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:meu_plantao_front/screens/manage_locations/manage_locations_page.dart';
 import 'package:meu_plantao_front/service/shift_service.dart';
-import '../../common/components/date_time_picker.dart';
-import '../components/shift_submit_button.dart';
-import '../../common/components/auto_close_dialog.dart';
+import 'package:meu_plantao_front/service/location_service.dart';
+import '../common/components/date_time_picker.dart';
+import '../calendar/components/shift_submit_button.dart';
+import '../common/components/auto_close_dialog.dart';
 
 class EditShiftPage extends StatefulWidget {
   final Map<String, dynamic> shift;
@@ -25,7 +27,10 @@ class _EditShiftPageState extends State<EditShiftPage> {
   DateTime? endDate;
   TimeOfDay? endTime;
   double? value;
-  String? location;
+  Map<String, dynamic>? location;
+  String? selectedLocationId;
+
+  List<Map<String, dynamic>> locations = [];
 
   bool get _isButtonEnabled =>
       startDate != null &&
@@ -34,24 +39,68 @@ class _EditShiftPageState extends State<EditShiftPage> {
       endTime != null &&
       value != null &&
       value! > 0 &&
-      location != null &&
-      location!.isNotEmpty;
+      selectedLocationId != null &&
+      selectedLocationId!.isNotEmpty;
+
+  // Constants for styling
+  static const double _padding = 16.0;
+  static const double _buttonPadding = 15.0;
+  static const double _dialogPadding = 20.0;
+  static const double _fontSize = 18.0;
+  static const double _buttonFontSize = 14.0;
+  static const double _borderRadius = 8.0;
+  static const Color _primaryColor = Color(0xFF32CD32); // Equivalent to Colors.green
+  static const Color _secondaryColor = Color(0xFFBDBDBD); // Equivalent to Colors.grey[400]
+  static const Color _whiteColor = Color(0xFFFFFFFF); // Equivalent to Colors.white
+  static const Color _blackColor = Color(0xFF000000); // Equivalent to Colors.black
 
   @override
   void initState() {
     super.initState();
-    // Initialize fields from the provided shift data
+    _initializeFields();
+    _loadLocations();
+  }
+
+  void _initializeFields() {
     startDate = DateTime.parse(widget.shift['startTime']);
     startTime = TimeOfDay.fromDateTime(startDate!);
     endDate = DateTime.parse(widget.shift['endTime']);
     endTime = TimeOfDay.fromDateTime(endDate!);
     value = widget.shift['value'];
     location = widget.shift['location'];
+    selectedLocationId = widget.shift['location']['id'].toString();
+  }
+
+  Future<void> _loadLocations() async {
+    try {
+      final locationService = LocationService();
+      final List<dynamic> locationsData = await locationService.fetchAllActiveLocations();
+
+      setState(() {
+        locations = locationsData.map((location) {
+          return {
+            'id': location['id'].toString(),
+            'name': location['name'],
+          };
+        }).toList();
+
+        bool isSelectedLocationActive = locations.any((loc) => loc['id'] == selectedLocationId);
+
+        if (!isSelectedLocationActive && location != null) {
+          locations.add({
+            'id': location!['id'].toString(),
+            'name': '${location!['name']} (Inativo)',
+          });
+        }
+      });
+    } catch (e) {
+      print("Failed to load locations: $e");
+    }
   }
 
   Future<void> _saveEditedShift() async {
     try {
-      final ShiftService shiftService = ShiftService();
+      final shiftService = ShiftService();
 
       await shiftService.editShift(
         id: widget.shift['id'],
@@ -70,11 +119,10 @@ class _EditShiftPageState extends State<EditShiftPage> {
           endTime!.minute,
         ),
         value: value,
-        location: location,
+        location: selectedLocationId,
       );
       AutoCloseDialog.show(context, 'Plantão editado com sucesso');
     } catch (e) {
-      // Handle error, e.g., show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to edit shift: $e')),
       );
@@ -87,18 +135,17 @@ class _EditShiftPageState extends State<EditShiftPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Editar Plantão'),
+        title: const Text('Editar Plantão'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            print('returning from edit page');
             Navigator.of(context).pop(true);
           },
         ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(_padding),
           child: Column(
             children: [
               // Start Date and Time
@@ -120,8 +167,8 @@ class _EditShiftPageState extends State<EditShiftPage> {
                   });
                 },
               ),
-              SizedBox(height: 16.0),
-        
+              const SizedBox(height: _padding),
+
               // End Date and Time
               CustomDateTimePicker(
                 labelText: 'Data/Hora de fim',
@@ -141,11 +188,11 @@ class _EditShiftPageState extends State<EditShiftPage> {
                   });
                 },
               ),
-              SizedBox(height: 16.0),
-        
+              const SizedBox(height: _padding),
+
               // Value
               TextFormField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Valor',
                   prefixText: 'R\$ ',
                 ),
@@ -157,22 +204,53 @@ class _EditShiftPageState extends State<EditShiftPage> {
                   });
                 },
               ),
-              SizedBox(height: 16.0),
-        
+              const SizedBox(height: _padding),
+
               // Location
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Local',
-                ),
-                initialValue: location,
-                onChanged: (input) {
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Local'),
+                value: selectedLocationId,
+                items: locations.map((location) {
+                  return DropdownMenuItem<String>(
+                    value: location['id'],
+                    child: Text(location['name']),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
                   setState(() {
-                    location = input;
+                    selectedLocationId = newValue;
                   });
                 },
               ),
-              SizedBox(height: 25.0),
-        
+
+              const SizedBox(height: _padding),
+
+              // Edit Locations Button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ManageLocationsPage(onLocationsUpdated: _loadLocations,),
+                        ),
+                      );
+                    },
+                    child: const Text('Editar meus locais', style: TextStyle(color: _primaryColor)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _whiteColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(_borderRadius),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: _buttonPadding, vertical: _buttonPadding),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: _padding),
+
               // Save Button
               ShiftSubmitButton(
                 buttonText: 'Salvar',
@@ -192,13 +270,13 @@ class _EditShiftPageState extends State<EditShiftPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Plantão editado com sucesso!'),
+          title: const Text('Plantão editado com sucesso!'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Ok'),
+              child: const Text('Ok'),
             ),
           ],
         );

@@ -25,7 +25,7 @@ class Dropdown extends StatelessWidget {
         return DropdownButtonFormField<String>(
           value: value,
           decoration: InputDecoration(
-            labelStyle: TextStyle(color: Colors.grey.shade800),
+            labelStyle: TextStyle(color: Colors.grey.shade800, fontSize: 16),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400),
               borderRadius: BorderRadius.circular(12),
@@ -43,18 +43,18 @@ class Dropdown extends StatelessWidget {
           ),
           hint: Text(
             hintText,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
           ),
           icon: const Icon(Icons.arrow_drop_down),
           iconSize: 24,
           elevation: 16,
-          style: TextStyle(color: Colors.grey.shade900),
+          style: TextStyle(color: Colors.grey.shade900, fontSize: 16),
           dropdownColor: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
           items: items.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value),
+              child: Text(value, style: TextStyle(fontSize: 16)),
             );
           }).toList(),
           onChanged: (String? newValue) {
