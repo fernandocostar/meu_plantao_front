@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +7,7 @@ import 'carousel_page_indicator.dart';
 import '../../edit_shift/edit_shift_page.dart';
 import '../../../service/shift_service.dart';
 import '../../common/components/auto_close_dialog.dart';
+import '../../shift_passing/shift_passing_page.dart';
 
 class CarouselWidget extends StatefulWidget {
   final List<dynamic> events;
@@ -47,14 +50,14 @@ class _CarouselWidgetState extends State<CarouselWidget> {
       await shiftService.deleteShift(shift['id']);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Falha ao deletar plantao. Tente novamente')),
+        const SnackBar(content: Text('Falha ao deletar plantão. Tente novamente')),
       );
       return;
     }
     setState(() {
       widget.events.remove(shift);
     });
-    AutoCloseDialog.show(context, 'Plantao deletado com sucesso');
+    AutoCloseDialog.show(context, 'Plantão deletado com sucesso');
     widget.onShiftUpdated();
   }
 
@@ -247,12 +250,36 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                             ),
                           ),
                           SizedBox(height: 8),
-                          Text(
-                            "Local: $location",
-                            style: TextStyle(
-                              fontSize: _fontSize,
-                              color: _black87Color,
-                            ),
+                          // Altere a linha abaixo para adicionar o ícone de encaminhamento
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.location_on, color: _greyColor),
+                                  SizedBox(width: 8.0),
+                                  Text(
+                                    location,
+                                    style: TextStyle(
+                                      fontSize: _fontSize,
+                                      color: _black87Color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Novo Ícone de Encaminhamento
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ShiftPassingPage(shift: shift, onSave: (){},), //TODO: Implement onSave
+                                    ),
+                                  );
+                                },
+                                child: Icon(Icons.send, color: _greyColor),
+                              ),
+                            ],
                           ),
                         ],
                       ),

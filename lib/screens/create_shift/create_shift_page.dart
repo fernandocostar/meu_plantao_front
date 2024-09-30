@@ -3,7 +3,7 @@ import 'package:meu_plantao_front/screens/manage_locations/manage_locations_page
 import 'package:meu_plantao_front/service/location_service.dart';
 import 'package:meu_plantao_front/service/shift_service.dart';
 import '../common/components/date_time_picker.dart';
-import 'package:meu_plantao_front/screens/calendar/components/shift_submit_button.dart';
+import 'package:meu_plantao_front/screens/common/components/shift_submit_button.dart';
 
 class CreateShiftPage extends StatefulWidget {
   final DateTime selectedDate;

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:meu_plantao_front/screens/edit_shift/components/shift_pass_button.dart';
 import 'package:meu_plantao_front/screens/manage_locations/manage_locations_page.dart';
 import 'package:meu_plantao_front/service/shift_service.dart';
 import 'package:meu_plantao_front/service/location_service.dart';
 import '../common/components/date_time_picker.dart';
-import '../calendar/components/shift_submit_button.dart';
+import '../common/components/shift_submit_button.dart';
 import '../common/components/auto_close_dialog.dart';
+import '../shift_passing/shift_passing_page.dart'; // Importe a página ShiftPassingPage
 
 class EditShiftPage extends StatefulWidget {
   final Map<String, dynamic> shift;
@@ -124,11 +126,24 @@ class _EditShiftPageState extends State<EditShiftPage> {
       AutoCloseDialog.show(context, 'Plantão editado com sucesso');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to edit shift: $e')),
+        SnackBar(content: Text('Falha ao editar plantão: $e')),
       );
     }
 
     widget.onSave();
+  }
+
+  void _passShift() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShiftPassingPage(shift: widget.shift, onSave: (){}), //TODO Implement onSave
+      ),
+    ).then((result) {
+      if (result == true) {
+        widget.onSave(); // Atualiza a lista de plantões após a transferência
+      }
+    });
   }
 
   @override
@@ -251,36 +266,39 @@ class _EditShiftPageState extends State<EditShiftPage> {
 
               const SizedBox(height: _padding),
 
-              // Save Button
-              ShiftSubmitButton(
-                buttonText: 'Salvar',
-                selectedDate: startDate!,
-                isButtonEnabled: _isButtonEnabled,
-                onPressed: _saveEditedShift,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Botão Salvar
+                  Expanded(
+                    child: ShiftSubmitButton(
+                      buttonText: 'Salvar',
+                      selectedDate: startDate!,
+                      isButtonEnabled: _isButtonEnabled,
+                      onPressed: _saveEditedShift,
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  // Botão Passar Plantão
+                ],
               ),
+
+              const SizedBox(height: _padding),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: ShiftPassButton(
+                      buttonText: "Passar plantão",
+                      onPressed: _passShift, 
+                      isButtonEnabled: true)),
+                  const SizedBox(width: 10.0),
+                ],
+              )
             ],
           ),
         ),
       ),
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Plantão editado com sucesso!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Ok'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

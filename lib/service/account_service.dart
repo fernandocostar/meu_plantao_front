@@ -74,4 +74,33 @@ class AccountService {
       throw Exception('An error occurred while updating account information.');
     }
   }
+
+  Future<Map<String, dynamic>?> searchUserByPhone(String phoneNumber) async {
+    try {
+      String? token = await _secureStorage.read(key: 'token');
+
+      if (token != null) {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:3000/account/searchByPhone?phone=$phoneNumber'),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body);
+        } else if (response.statusCode == 404) {
+          return null;
+        } else {
+          throw Exception('Failed to search account by phone.');
+        }
+      } else {
+        throw Exception('Token not found.');
+      }
+    } catch (e) {
+      print('Error searching account by phone: $e');
+      throw Exception('An error occurred while searching account by phone.');
+    }
+  }
+
 }
