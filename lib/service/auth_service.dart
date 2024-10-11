@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class AuthService {
   final String apiUrl =
-      'http://10.0.2.2:3000/auth';
+      'http://localhost:3000/auth';
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final http.Client _client = http.Client();
 

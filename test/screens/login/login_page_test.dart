@@ -43,7 +43,7 @@ void main() {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(httpClient: mockClient),
+      home: LoginPage(),
     ),
       );
 
@@ -72,7 +72,7 @@ void main() {
       // Build the LoginPage with the mock HTTP client
       await tester.pumpWidget(
         MaterialApp(
-          home: LoginPage(httpClient: mockClient),
+          home: LoginPage(),
         ),
       );
 

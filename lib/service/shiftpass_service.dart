@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ShiftPassService {
-  final String apiUrl = 'http://10.0.2.2:3000/shiftpasses';
+  final String apiUrl = 'http://localhost:3000/shiftpasses';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<void> createShiftPass({

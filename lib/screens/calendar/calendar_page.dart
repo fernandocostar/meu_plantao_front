@@ -68,7 +68,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       if (storedToken != null) {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:3000/shifts/getAll'),
+          Uri.parse('http://localhost:3000/shifts/getAll'),
           headers: {
             'Authorization': 'Bearer $storedToken',
           },
