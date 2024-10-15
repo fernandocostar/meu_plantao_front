@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -102,11 +104,12 @@ class ShiftPassService {
     }
   }
 
-  Future<bool> shiftPassExists(int shiftId) async {
+  Future<Map<String, dynamic>> shiftPassExists(int shiftId) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
       throw Exception('Auth token is not available');
     }
+
     final response = await http.get(
       Uri.parse('$apiUrl/get/').replace(
         queryParameters: {
@@ -120,18 +123,25 @@ class ShiftPassService {
 
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
-      return responseBody
-          .isNotEmpty; // Verifica se a resposta contém dados válidos
+      if (responseBody.isNotEmpty) {
+        return responseBody; // Retorna os detalhes do shift pass se existir
+      } else {
+        return {}; // Retorna um map vazio se não existir shift pass
+      }
+    } else if (response.statusCode == 404) {
+      return {}; // Retorna um map vazio se não existir shift pass
     } else {
-      return false;
+      throw Exception('Failed to check shift pass existence: ${response.body}');
     }
   }
 
-  Future<List<dynamic>> fetchOfferedUsers(int shiftPassId) async {
+  Future<Map<String, dynamic>> fetchOfferedUsers(int shiftPassId) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
       throw Exception('Auth token is not available');
     }
+
+    log('fetchOfferedUsers');
 
     final response = await http.get(
       Uri.parse('$apiUrl/get/$shiftPassId'),
@@ -140,11 +150,13 @@ class ShiftPassService {
       },
     );
 
+    log('fetchOfferedUsers response: ${response.body}');
+
     if (response.statusCode == 200) {
       final responseBody = jsonDecode(response.body);
-      if (responseBody['offeredUsers'] != null) {
-        return responseBody[
-            'offeredUsers']; // Retorna a lista de usuários oferecidos
+      if (responseBody != null) {
+        log('returning offered users');
+        return responseBody; // Retorna a lista de usuários oferecidos
       } else {
         throw Exception('No offered users found');
       }

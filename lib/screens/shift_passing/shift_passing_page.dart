@@ -1,16 +1,18 @@
+import 'dart:math';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:meu_plantao_front/screens/shift_passing/components/shiftpass_submit_button.dart';
 import 'package:meu_plantao_front/service/shift_service.dart';
 import 'package:meu_plantao_front/service/shiftpass_service.dart';
 import 'package:meu_plantao_front/service/account_service.dart';
 import 'package:meu_plantao_front/screens/common/components/auto_close_dialog.dart';
-import 'package:meu_plantao_front/screens/shift_passing/components/shiftpass_submit_button.dart';
 import 'package:meu_plantao_front/screens/shift_passing/components/shift_detail_card.dart';
 
 class ShiftPassingPage extends StatefulWidget {
   final Map<String, dynamic> shift;
-  final Map<String, dynamic> shiftPass;
   final VoidCallback onSave;
+  Map<String, dynamic> shiftPass;
 
   ShiftPassingPage({
     required this.shift,
@@ -27,10 +29,11 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
   final ShiftPassService _shiftPassService = ShiftPassService();
   final AccountService _accountService = AccountService();
   List<Map<String, dynamic>> _assignedUsers = [];
+  Map<String, dynamic>? _createdBy;
   bool _isSaving = false;
   bool _isExistingPassage = false;
 
-  // Constants for styling (mesmos da EditShiftPage)
+  // Constants for styling
   static const double _padding = 16.0;
   static const double _buttonPadding = 15.0;
   static const double _dialogPadding = 20.0;
@@ -51,31 +54,51 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
 
   Future<void> _checkExistingPassage() async {
     try {
-      bool passageExists =
+      // Verificar se a passagem já existe e obter os detalhes da passagem
+      Map<String, dynamic> shiftPassDetails =
           await _shiftPassService.shiftPassExists(widget.shift['id']);
+
       setState(() {
-        _isExistingPassage = passageExists;
+        if (shiftPassDetails.isNotEmpty) {
+          _isExistingPassage = true;
+          widget.shiftPass =
+              shiftPassDetails; // Armazena os detalhes do shift pass
+        } else {
+          _isExistingPassage = false;
+        }
       });
+
       if (_isExistingPassage) {
-        _loadExistingAssignedUsers();
+        _loadExistingAssignedUsers(
+            shiftPassDetails['id']); // Passa o shiftPassId correto
       }
     } catch (e) {
       AutoCloseDialog.show(context, 'Falha ao verificar passagem existente.');
+      Navigator.of(context).pop(false);
     }
   }
 
-  Future<void> _loadExistingAssignedUsers() async {
+  Future<void> _loadExistingAssignedUsers(int shiftPassId) async {
     try {
-      List<dynamic> users =
-          await _shiftPassService.fetchOfferedUsers(widget.shiftPass['id']);
+      // Requisição para buscar os offeredUsers
+      Map<String, dynamic> shiftPassDetails =
+          await _shiftPassService.fetchOfferedUsers(shiftPassId);
+
       setState(() {
-        _assignedUsers = users.map((user) {
-          return {
-            'id': user['id'],
-            'name': user['name'],
-            'phone': user['phone'],
-          };
-        }).toList();
+        // Armazenando o createdBy
+        _createdBy = shiftPassDetails['createdBy'];
+
+        // Armazenando os offeredUsers como uma lista de mapas
+        _assignedUsers = List<Map<String, dynamic>>.from(
+          shiftPassDetails['offeredUsers'].map<Map<String, dynamic>>((user) {
+            return {
+              'id': user['id'] ??
+                  0, // Usar 0 ou outro valor padrão se o id for null
+              'name': user['name'] ?? 'Nome não informado',
+              'email': user['email'] ?? 'Email não informado',
+            };
+          }).toList(),
+        );
       });
     } catch (e) {
       AutoCloseDialog.show(
@@ -215,7 +238,7 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Use o ShiftDetailsCard
+              // Detalhes do plantão
               ShiftDetailsCard(
                 shift: widget.shift,
                 primaryColor: _primaryColor,
@@ -224,7 +247,7 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
 
               // Lista de Plantonistas Adicionados
               const Text(
-                'Plantonistas Adicionados:',
+                'Oferecido a:',
                 style:
                     TextStyle(fontSize: _fontSize, fontWeight: FontWeight.bold),
               ),
@@ -240,7 +263,7 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
                         return ListTile(
                           leading: const Icon(Icons.person),
                           title: Text('${user['name']}'),
-                          subtitle: Text('${user['phone']}'),
+                          subtitle: Text('${user['email']}'),
                           trailing: IconButton(
                             icon: const Icon(Icons.remove_circle,
                                 color: Colors.red),
