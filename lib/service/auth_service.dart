@@ -3,8 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  final String apiUrl =
-      'http://localhost:3000/auth';
+  final String apiUrl = 'http://10.0.2.2:8080/auth';
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final http.Client _client = http.Client();
 
@@ -131,7 +130,8 @@ class AuthService {
 
   Future<http.Response> _postRequest(
       String url, Map<String, dynamic> body) async {
-    return await _client.post( // Use _client instead of http
+    return await _client.post(
+      // Use _client instead of http
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(body),

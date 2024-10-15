@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:meu_plantao_front/screens/calendar/components/create_shift_calendar_button.dart';
 import 'package:meu_plantao_front/screens/account/account_page.dart';
+import 'package:meu_plantao_front/screens/shift_passing/shift_pass_page.dart';
 import 'package:meu_plantao_front/screens/calendar/components/calendar_widget.dart';
 import 'package:meu_plantao_front/screens/calendar/components/carousel_widget.dart';
 import 'package:meu_plantao_front/screens/calendar/components/calendar_metrics_widget.dart';
@@ -68,7 +69,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
       if (storedToken != null) {
         final response = await http.get(
-          Uri.parse('http://localhost:3000/shifts/getAll'),
+          Uri.parse('http://10.0.2.2:8080/shifts/getAll'),
           headers: {
             'Authorization': 'Bearer $storedToken',
           },
@@ -171,16 +172,7 @@ class _CalendarPageState extends State<CalendarPage> {
       case 0:
         return HomePage();
       case 2:
-        return Center(
-          child: Text(
-            'Relatórios em breve!',
-            style: TextStyle(
-              fontSize: 24,
-              color: _primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
+        return OfferedShiftsPage();
       default:
         return Center(child: Text('Unknown Page'));
     }
@@ -245,8 +237,8 @@ class _CalendarPageState extends State<CalendarPage> {
             label: 'Calendário',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Relatórios',
+            icon: Icon(Icons.swap_horiz),
+            label: 'Passagens de plantão',
           ),
         ],
         currentIndex: _selectedIndex,

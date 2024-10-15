@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ShiftCard extends StatelessWidget {
+class ShiftPassDetailsCard extends StatelessWidget {
   final String startTime;
   final Map<String, dynamic> location;
   final double duration; // Duration in hours
   final double value;
 
-  ShiftCard({
+  ShiftPassDetailsCard({
     required this.startTime,
     required this.location,
     required this.duration,

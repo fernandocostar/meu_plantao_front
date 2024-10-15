@@ -3,12 +3,55 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ShiftPassService {
-  final String apiUrl = 'http://localhost:3000/shiftpasses';
+  final String apiUrl = 'http://10.0.2.2:8080/shifts/pass';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
+  // Busca todas as passagens de plantões oferecidas ao usuário atual
+  Future<List<dynamic>> fetchOfferedShifts() async {
+    final String? authToken = await _secureStorage.read(key: 'token');
+    if (authToken == null) {
+      throw Exception('Auth token is not available');
+    }
+
+    final response = await http.get(
+      Uri.parse('$apiUrl/get/offeredShifts'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to fetch offered shift passes: ${response.body}');
+    }
+  }
+
+  // Aceita uma passagem de plantão com o ID da localização selecionada
+  Future<void> acceptShiftPass(int shiftPassId, int locationId) async {
+    final String? authToken = await _secureStorage.read(key: 'token');
+    if (authToken == null) {
+      throw Exception('Auth token is not available');
+    }
+
+    final response = await http.post(
+      Uri.parse('$apiUrl/accept/$shiftPassId?locationId=$locationId'),
+      headers: {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to accept shift pass: ${response.body}');
+    }
+  }
+
+  // Método para rejeitar um plantão pode ser adicionado aqui se necessário
   Future<void> createShiftPass({
     required int shiftId,
-    required List<int> assignedUsers,
+    required List<String>
+        offeredUsers, // Lista de IDs dos usuários para quem o plantão é oferecido
   }) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
@@ -16,14 +59,15 @@ class ShiftPassService {
     }
 
     final response = await http.post(
-      Uri.parse('$apiUrl/createShiftPass'),
+      Uri.parse('$apiUrl/create/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authToken',
       },
       body: jsonEncode({
-        'shiftId': shiftId,
-        'assignedUsers': assignedUsers,
+        'shiftId': shiftId
+            .toString(), // O shiftId deve ser convertido para string conforme o exemplo do curl
+        'offeredUsers': offeredUsers,
       }),
     );
 
@@ -33,8 +77,9 @@ class ShiftPassService {
   }
 
   Future<void> editShiftPass({
-    required int shiftId,
-    required List<int> assignedUsers,
+    required int shiftPassId,
+    required List<String>
+        offeredUsers, // Lista de IDs dos novos usuários oferecidos
   }) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
@@ -42,13 +87,13 @@ class ShiftPassService {
     }
 
     final response = await http.put(
-      Uri.parse('$apiUrl/updateShiftPass/$shiftId'),
+      Uri.parse('$apiUrl/edit/$shiftPassId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authToken',
       },
       body: jsonEncode({
-        'assignedUsers': assignedUsers,
+        'offeredUsers': offeredUsers, // Enviando a nova lista de offeredUsers
       }),
     );
 
@@ -57,118 +102,54 @@ class ShiftPassService {
     }
   }
 
-  Future<void> deleteShiftPass(int? id) async {
-    final String? authToken = await _secureStorage.read(key: 'token');
-
-    if (authToken == null) {
-      throw Exception('Auth token is not available');
-    }
-
-    final response =
-        await http.delete(Uri.parse('$apiUrl/deleteShiftPass/$id'), headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $authToken',
-    });
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete shift pass: ${response.body}');
-    }
-  }
-
-  Future<List<dynamic>> fetchAllShiftPasses() async {
+  Future<bool> shiftPassExists(int shiftId) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
       throw Exception('Auth token is not available');
     }
-
     final response = await http.get(
-      Uri.parse('$apiUrl/getAll'),
+      Uri.parse('$apiUrl/get/').replace(
+        queryParameters: {
+          'originShiftId': shiftId.toString(),
+        },
+      ),
       headers: {
         'Authorization': 'Bearer $authToken',
       },
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final responseBody = jsonDecode(response.body);
+      return responseBody
+          .isNotEmpty; // Verifica se a resposta contém dados válidos
     } else {
-      throw Exception('Failed to fetch shift passes: ${response.body}');
+      return false;
     }
   }
 
-  Future<List<dynamic>> fetchCurrentMonthShiftPasses() async {
+  Future<List<dynamic>> fetchOfferedUsers(int shiftPassId) async {
     final String? authToken = await _secureStorage.read(key: 'token');
     if (authToken == null) {
       throw Exception('Auth token is not available');
     }
 
     final response = await http.get(
-      Uri.parse('$apiUrl/getAll'),
+      Uri.parse('$apiUrl/get/$shiftPassId'),
       headers: {
         'Authorization': 'Bearer $authToken',
       },
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> shiftPasses = jsonDecode(response.body);
-
-      // Filter shift passes to include only those within the current month
-      DateTime now = DateTime.now();
-      int currentMonth = now.month;
-      int currentYear = now.year;
-
-      shiftPasses = shiftPasses.where((shiftPass) {
-        DateTime start = DateTime.parse(shiftPass['startTime']);
-        return start.month == currentMonth && start.year == currentYear;
-      }).toList();
-
-      // Sort by start time
-      shiftPasses.sort((a, b) => DateTime.parse(a['startTime'])
-          .compareTo(DateTime.parse(b['startTime'])));
-      return shiftPasses;
+      final responseBody = jsonDecode(response.body);
+      if (responseBody['offeredUsers'] != null) {
+        return responseBody[
+            'offeredUsers']; // Retorna a lista de usuários oferecidos
+      } else {
+        throw Exception('No offered users found');
+      }
     } else {
-      throw Exception('Failed to fetch shift passes: ${response.body}');
+      throw Exception('Failed to fetch shift pass details: ${response.body}');
     }
   }
-
-  Future<List<dynamic>> getAssignedUsers(int shiftId) async {
-    final String? authToken = await _secureStorage.read(key: 'token');
-    if (authToken == null) {
-      throw Exception('Auth token is not available');
-    }
-
-    final response = await http.get(
-      Uri.parse('$apiUrl/getAssignedUsers/$shiftId'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body)['users'];
-    } else {
-      throw Exception('Failed to fetch assigned users: ${response.body}');
-    }
-  }
-
-  Future<bool> checkShiftPassExists(int id) async {
-    final String? authToken = await _secureStorage.read(key: 'token');
-    if (authToken == null) {
-      throw Exception('Auth token is not available');
-    }
-
-    final response = await http.get(
-      Uri.parse('$apiUrl/checkPassExists/$id'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      return result['exists'] as bool;
-    } else {
-      throw Exception('Failed to check if passage exists: ${response.body}');
-    }
-  }
-
 }

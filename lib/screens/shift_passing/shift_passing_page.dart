@@ -9,11 +9,13 @@ import 'package:meu_plantao_front/screens/shift_passing/components/shift_detail_
 
 class ShiftPassingPage extends StatefulWidget {
   final Map<String, dynamic> shift;
+  final Map<String, dynamic> shiftPass;
   final VoidCallback onSave;
 
   ShiftPassingPage({
     required this.shift,
     required this.onSave,
+    this.shiftPass = const {},
   });
 
   @override
@@ -35,7 +37,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
   static const double _fontSize = 18.0;
   static const double _buttonFontSize = 14.0;
   static const double _borderRadius = 8.0;
-  static const Color _primaryColor = Color.fromARGB(255, 32, 184, 86); // Colors.green
+  static const Color _primaryColor =
+      Color.fromARGB(255, 32, 184, 86); // Colors.green
   static const Color _secondaryColor = Color(0xFFBDBDBD); // Colors.grey[400]
   static const Color _whiteColor = Color(0xFFFFFFFF); // Colors.white
   static const Color _blackColor = Color(0xFF000000); // Colors.black
@@ -48,7 +51,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
 
   Future<void> _checkExistingPassage() async {
     try {
-      bool passageExists = await _shiftPassService.checkShiftPassExists(widget.shift['id']);
+      bool passageExists =
+          await _shiftPassService.shiftPassExists(widget.shift['id']);
       setState(() {
         _isExistingPassage = passageExists;
       });
@@ -62,7 +66,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
 
   Future<void> _loadExistingAssignedUsers() async {
     try {
-      List<dynamic> users = await _shiftPassService.getAssignedUsers(widget.shift['id']);
+      List<dynamic> users =
+          await _shiftPassService.fetchOfferedUsers(widget.shiftPass['id']);
       setState(() {
         _assignedUsers = users.map((user) {
           return {
@@ -73,7 +78,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
         }).toList();
       });
     } catch (e) {
-      AutoCloseDialog.show(context, 'Falha ao carregar plantonistas atribuídos. $e');
+      AutoCloseDialog.show(
+          context, 'Falha ao carregar plantonistas atribuídos. $e');
     }
   }
 
@@ -105,13 +111,16 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
                 String phoneNumber = _phoneController.text.trim();
                 if (phoneNumber.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Por favor, insira um número de celular.')),
+                    const SnackBar(
+                        content:
+                            Text('Por favor, insira um número de celular.')),
                   );
                   return;
                 }
 
                 try {
-                  Map<String, dynamic>? user = await _accountService.searchUserByPhone(phoneNumber);
+                  Map<String, dynamic>? user =
+                      await _accountService.searchUserByPhone(phoneNumber);
                   if (user != null) {
                     setState(() {
                       _assignedUsers.add({
@@ -123,7 +132,9 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
                     Navigator.of(context).pop(); // Fechar o popup
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Nenhum usuário encontrado com esse número.')),
+                      const SnackBar(
+                          content: Text(
+                              'Nenhum usuário encontrado com esse número.')),
                     );
                   }
                 } catch (e) {
@@ -143,7 +154,9 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
   Future<void> _savePassing() async {
     if (_assignedUsers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Adicione pelo menos um plantonista para passar o plantão.')),
+        const SnackBar(
+            content: Text(
+                'Adicione pelo menos um plantonista para passar o plantão.')),
       );
       return;
     }
@@ -153,20 +166,23 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
     });
 
     try {
-      List<int> userIds = _assignedUsers.map((user) => user['id'] as int).toList();
+      List<String> userIds =
+          _assignedUsers.map((user) => user['id'] as String).toList();
 
       if (_isExistingPassage) {
         await _shiftPassService.editShiftPass(
-          shiftId: widget.shift['id'],
-          assignedUsers: userIds,
+          shiftPassId: widget.shift['id'],
+          offeredUsers: userIds,
         );
-        AutoCloseDialog.show(context, 'Passagem de plantão atualizada com sucesso!');
+        AutoCloseDialog.show(
+            context, 'Passagem de plantão atualizada com sucesso!');
       } else {
         await _shiftPassService.createShiftPass(
           shiftId: widget.shift['id'],
-          assignedUsers: userIds,
+          offeredUsers: userIds,
         );
-        AutoCloseDialog.show(context, 'Passagem de plantão criada com sucesso!');
+        AutoCloseDialog.show(
+            context, 'Passagem de plantão criada com sucesso!');
       }
       widget.onSave();
       Navigator.of(context).pop(true);
@@ -209,7 +225,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
               // Lista de Plantonistas Adicionados
               const Text(
                 'Plantonistas Adicionados:',
-                style: TextStyle(fontSize: _fontSize, fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(fontSize: _fontSize, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10.0),
               _assignedUsers.isEmpty
@@ -225,7 +242,8 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
                           title: Text('${user['name']}'),
                           subtitle: Text('${user['phone']}'),
                           trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.red),
+                            icon: const Icon(Icons.remove_circle,
+                                color: Colors.red),
                             onPressed: () {
                               setState(() {
                                 _assignedUsers.removeAt(index);
@@ -241,10 +259,18 @@ class _ShiftPassingPageState extends State<ShiftPassingPage> {
               Center(
                 child: ElevatedButton.icon(
                   onPressed: _showAddPlantonistaDialog,
-                  icon: const Icon(Icons.add, color: _whiteColor,),
-                  label: const Text('Adicionar Plantonista', style: TextStyle(color: _whiteColor),),
+                  icon: const Icon(
+                    Icons.add,
+                    color: _whiteColor,
+                  ),
+                  label: const Text(
+                    'Adicionar Plantonista',
+                    style: TextStyle(color: _whiteColor),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: _buttonPadding, vertical: _buttonPadding / 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: _buttonPadding,
+                        vertical: _buttonPadding / 2),
                     backgroundColor: const Color.fromARGB(255, 58, 77, 176),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_borderRadius),

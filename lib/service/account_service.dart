@@ -16,7 +16,7 @@ class AccountService {
 
       if (token != null) {
         final response = await http.get(
-          Uri.parse('http://localhost:3000/account/info'),
+          Uri.parse('http://10.0.2.2:8080/account/info'),
           headers: {
             'Authorization': 'Bearer $token',
           },
@@ -47,7 +47,7 @@ class AccountService {
 
       if (token != null) {
         final response = await http.post(
-          Uri.parse('http://localhost:3000/account/update'),
+          Uri.parse('http://10.0.2.2:8080/account/update'),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
@@ -81,7 +81,8 @@ class AccountService {
 
       if (token != null) {
         final response = await http.get(
-          Uri.parse('http://localhost:3000/account/searchByPhone?phone=$phoneNumber'),
+          Uri.parse(
+              'http://10.0.2.2:8080/account/searchByPhone?phone=$phoneNumber'),
           headers: {
             'Authorization': 'Bearer $token',
           },
@@ -102,5 +103,4 @@ class AccountService {
       throw Exception('An error occurred while searching account by phone.');
     }
   }
-
 }

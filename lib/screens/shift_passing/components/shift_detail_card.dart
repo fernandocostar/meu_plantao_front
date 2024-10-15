@@ -39,7 +39,8 @@ class ShiftDetailsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     DateTime startTime = DateTime.parse(shift['startTime']);
     DateTime endTime = DateTime.parse(shift['endTime']);
-    String formattedStartTime = DateFormat('dd/MM/yyyy HH:mm').format(startTime);
+    String formattedStartTime =
+        DateFormat('dd/MM/yyyy HH:mm').format(startTime);
     String formattedDuration = _calculateDuration(startTime, endTime);
     double value = shift['value'];
     String location = shift['location']['name'];

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class LocationService {
-  final String apiUrl = 'http://localhost:3000/locations';
+  final String apiUrl = 'http://10.0.2.2:8080/locations';
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<List<dynamic>> fetchAllActiveLocations() async {
